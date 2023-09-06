@@ -1,0 +1,40 @@
+import pygame
+from Pycharm_Projects.Chess_Test.data.global_variables import *
+
+
+class Dragger:
+
+    def __init__(self):
+        self.piece = None
+        self.dragging = False
+        self.mouseX = 0
+        self.mouseY = 0
+        self.initial_file = 0
+        self.initial_rank = 0
+
+    def update_blit(self, screen):
+        self.piece.set_img()
+
+        image = pygame.image.load(self.piece.img).convert_alpha()
+        converted_image = pygame.transform.smoothscale(image, (110, 110))
+        img_center = (self.mouseX, self.mouseY)
+        self.piece.img_rect = converted_image.get_rect(center=img_center)
+
+        screen.blit(converted_image, self.piece.img_rect)
+
+    def update_mouse(self, pos):
+        self.mouseX, self.mouseY = pos
+
+    def save_initial(self, pos):
+        self.initial_file = pos[0] // sqsize
+        self.initial_rank = pos[1] // sqsize
+
+    def drag_piece(self, piece):
+        self.piece = piece
+        self.dragging = True
+
+    def undrag_piece(self):
+        self.piece = None
+        self.dragging = False
+
+
