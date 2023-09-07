@@ -12,7 +12,7 @@ pygame.init()
 screen_x = 1920
 screen_y = 1080
 square_size = 100
-screen = pygame.display.set_mode((screen_x, screen_y), pygame.FULLSCREEN)
+screen = pygame.display.set_mode((screen_x, screen_y))
 pygame.display.set_caption('Chess')
 clock = pygame.time.Clock()
 test_font = pygame.font.Font(None, 50)
