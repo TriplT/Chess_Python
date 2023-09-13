@@ -8,6 +8,7 @@ from classes.board import *
 from classes.square import *
 from classes.piece import *
 
+
 pygame.init()
 screen_x = 1920
 screen_y = 1080
@@ -16,9 +17,10 @@ screen = pygame.display.set_mode((screen_x, screen_y))
 pygame.display.set_caption('Chess')
 clock = pygame.time.Clock()
 test_font = pygame.font.Font(None, 50)
-
+Piece.preload_images()
 
 def main():
+
     dragger = Dragger()
     board = Board()
     while True:
@@ -43,12 +45,11 @@ def main():
             elif event.type == pygame.MOUSEMOTION:
                 if dragger.dragging:
                     dragger.update_mouse(event.pos)
-                    draw_board(screen, square_size)
-                    print_pieces(screen, board, dragger)
                     dragger.update_blit(screen)
 
             elif event.type == pygame.MOUSEBUTTONUP:
                 dragger.undrag_piece()
+
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()

@@ -1,7 +1,19 @@
 import os
+import pygame
 
 
 class Piece:
+
+    images = {}
+
+    @classmethod
+    def preload_images(cls):
+        # Load and scale all of your images here, and store them in the images dictionary
+        for color in ['white', 'black']:
+            for name in ['pawn', 'king', 'knight', 'bishop', 'rook', 'queen']:
+                img_path = os.path.join(f'images/{color}_{name}.png')
+                image = pygame.image.load(img_path).convert_alpha()
+                cls.images[f'{color}_{name}'] = pygame.transform.smoothscale(image, (100, 100))
 
     def __init__(self, name, color, value, img=None, img_rect=None):
         self.name = name
@@ -14,46 +26,11 @@ class Piece:
         self.moves = []
         self.moved = False
 
+        self.preload_images()
         self.img = img
-        self.set_img()
+        self.img = self.images[f'{color}_{name}']
         self.img_rect = img_rect
-
-
-    def set_img(self):
-        self.img = os.path.join(f'images/{self.color}_{self.name}.png')
 
     # append a move into the self.moves list
     def add_moves(self, move):
         self.moves.append(move)
-
-    King = 1
-    Pawn = 2
-    Knight = 3
-    Bishop = 4
-    Rook = 5
-    Queen = 6
-
-    White = 8
-    Black = 16
-
-    @staticmethod
-    def is_colour(piece):
-        if piece > 8:
-            return True
-
-    @staticmethod
-    def get_colour(piece):
-        if 7 < piece < 16:
-            return 8
-        elif 16 < piece < 23:
-            return 16
-        else:
-            return None
-
-    @staticmethod
-    def get_piece_type(piece):
-        piece_type = piece % 8
-        return piece_type
-
-
-

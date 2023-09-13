@@ -13,14 +13,9 @@ class Dragger:
         self.initial_rank = 0
 
     def update_blit(self, screen):
-        self.piece.set_img()
-
-        image = pygame.image.load(self.piece.img).convert_alpha()
-        converted_image = pygame.transform.smoothscale(image, (110, 110))
         img_center = (self.mouseX, self.mouseY)
-        self.piece.img_rect = converted_image.get_rect(center=img_center)
-
-        screen.blit(converted_image, self.piece.img_rect)
+        self.piece.img_rect = self.piece.img.get_rect(center=img_center)
+        screen.blit(self.piece.img, self.piece.img_rect)
 
     def update_mouse(self, pos):
         self.mouseX, self.mouseY = pos
