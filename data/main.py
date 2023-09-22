@@ -17,10 +17,11 @@ screen = pygame.display.set_mode((screen_x, screen_y))
 pygame.display.set_caption('Chess')
 clock = pygame.time.Clock()
 test_font = pygame.font.Font(None, 50)
+
 Piece.preload_images()
 
-def main():
 
+def main():
     dragger = Dragger()
     board = Board()
     while True:

@@ -8,7 +8,7 @@ class Piece:
 
     @classmethod
     def preload_images(cls):
-        # Load and scale all of your images here, and store them in the images dictionary
+        # Load and scale all images and store them in the images dictionary
         for color in ['white', 'black']:
             for name in ['pawn', 'king', 'knight', 'bishop', 'rook', 'queen']:
                 img_path = os.path.join(f'images/{color}_{name}.png')
