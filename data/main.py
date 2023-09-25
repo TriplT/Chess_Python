@@ -3,6 +3,7 @@ from sys import exit
 from get_pygame_pos import get_pygame_pos
 from draw_board import draw_board
 from print_pieces import print_pieces
+from display_moves import display_moves
 from classes.dragger import *
 from classes.board import *
 from classes.square import *
@@ -38,10 +39,11 @@ def main():
                     clicked_file = (dragger.mouseX - (screen_x // 2 - 4 * square_size)) // square_size
                     clicked_rank = (dragger.mouseY - (screen_y // 2 - 4 * square_size)) // square_size
 
-                    if board.squares[clicked_file][clicked_rank].is_occupied():
-                        # piece = board.squares[clicked_file][clicked_rank].piece
+                    if board.squares[clicked_file][clicked_rank].occupied():
+                        piece = board.squares[clicked_file][clicked_rank].piece
+                        board.calculate_valid_moves(piece, clicked_file, clicked_rank)
                         dragger.save_initial(event.pos)
-                        dragger.drag_piece(board.squares[clicked_file][clicked_rank].piece)
+                        dragger.drag_piece(piece)
 
             elif event.type == pygame.MOUSEMOTION:
                 if dragger.dragging:
@@ -55,6 +57,7 @@ def main():
                 pygame.quit()
                 exit()
 
+        display_moves(screen, dragger)
         pygame.display.flip()
         clock.tick(60)
 

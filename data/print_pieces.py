@@ -8,7 +8,7 @@ from classes.dragger import *
 def print_pieces(screen, board, dragger):
     for file in range(files):
         for rank in range(ranks):
-            if board.squares[file][rank].is_occupied():
+            if board.squares[file][rank].occupied():
                 piece = board.squares[file][rank].piece
 
                 if piece is not dragger.piece:

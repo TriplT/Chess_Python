@@ -8,7 +8,7 @@ class Piece:
 
     @classmethod
     def preload_images(cls):
-        # Load and scale all images and store them in the images dictionary
+        # store scales images into a dictionary
         for color in ['white', 'black']:
             for name in ['pawn', 'king', 'knight', 'bishop', 'rook', 'queen']:
                 img_path = os.path.join(f'images/{color}_{name}.png')
@@ -19,7 +19,6 @@ class Piece:
         self.name = name
         self.color = color
 
-        # gibt neg value den gegnerischen pieces und pos den verbündeten. für ai gedacht
         value_sign = 1 if color == 'white' else -1
         self.value = value * value_sign
 
@@ -32,5 +31,5 @@ class Piece:
         self.img_rect = img_rect
 
     # append a move into the self.moves list
-    def add_moves(self, move):
+    def add_move(self, move):
         self.moves.append(move)

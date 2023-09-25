@@ -8,6 +8,7 @@ from Pycharm_Projects.Chess_Test.data.classes.pieces.rook import Rook
 from Pycharm_Projects.Chess_Test.data.classes.pieces.queen import Queen
 from Pycharm_Projects.Chess_Test.data.classes.square import Square
 from Pycharm_Projects.Chess_Test.data.global_variables import *
+from Pycharm_Projects.Chess_Test.data.classes.move import Move
 
 
 class Board:
@@ -23,6 +24,60 @@ class Board:
         for file in range(files):
             for rank in range(ranks):
                 self.squares[file][rank] = Square(file, rank)
+
+    def calculate_valid_moves(self, piece, file, rank):
+
+        def pawn_moves():
+            pass
+
+        def king_moves():
+            pass
+
+        def queen_moves():
+            pass
+
+        def bishop_moves():
+            pass
+
+        def knight_moves():
+            possible_moves = [
+                (rank-2, file+1),
+                (rank-1, file+2),
+                (rank+1, file+2),
+                (rank+2, file+1),
+                (rank+2, file-1),
+                (rank+1, file-2),
+                (rank-1, file-2),
+                (rank-2, file-1)
+            ]
+
+            for move in possible_moves:
+                move_file, move_rank = move
+
+                if Square.in_range(move_file, move_rank):
+                    if self.squares[move_file][move_rank].no_friendly_fire(piece.color):
+
+                        move = Move(Square(file, rank), Square(move_file, move_rank))
+                        piece.add_move(move)
+
+
+
+
+        def rook_moves():
+            pass
+
+        if isinstance(piece, Pawn):
+            pass
+        elif isinstance(piece, King):
+            pass
+        elif isinstance(piece, Queen):
+            pass
+        elif isinstance(piece, Bishop):
+            pass
+        elif isinstance(piece, Knight):
+            knight_moves()
+        elif isinstance(piece, Rook):
+            pass
 
     # adds starting position to list of lists self.squares (chessboard)
     def add_startposition(self, color):
@@ -46,5 +101,3 @@ class Board:
         self.squares[4][rank_piece] = Square(4, rank_piece, King(color))
 
         self.squares[3][rank_piece] = Square(3, rank_piece, Queen(color))
-
-
