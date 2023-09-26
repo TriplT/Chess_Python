@@ -3,16 +3,23 @@ import pygame
 
 
 class Piece:
-
+    # store scaled images into a dictionary
     images = {}
+    circle_image = {}
 
     @classmethod
     def preload_images(cls):
-        # store scales images into a dictionary
+
+        # chess move preview circle
+        img_path = os.path.join(f'images/move_preview_circle.png')
+        img = pygame.image.load(img_path).convert_alpha()
+        cls.circle_image[f'move_preview_circle'] = pygame.transform.smoothscale(img, (100, 100))
+
+        # chess piece images
         for color in ['white', 'black']:
             for name in ['pawn', 'king', 'knight', 'bishop', 'rook', 'queen']:
-                img_path = os.path.join(f'images/{color}_{name}.png')
-                image = pygame.image.load(img_path).convert_alpha()
+                image_path = os.path.join(f'images/{color}_{name}.png')
+                image = pygame.image.load(image_path).convert_alpha()
                 cls.images[f'{color}_{name}'] = pygame.transform.smoothscale(image, (100, 100))
 
     def __init__(self, name, color, value, img=None, img_rect=None):

@@ -3,7 +3,7 @@ from sys import exit
 from get_pygame_pos import get_pygame_pos
 from draw_board import draw_board
 from print_pieces import print_pieces
-from display_moves import display_moves
+from move_preview_circle_display import move_preview_circle_display
 from classes.dragger import *
 from classes.board import *
 from classes.square import *
@@ -57,7 +57,7 @@ def main():
                 pygame.quit()
                 exit()
 
-        display_moves(screen, dragger)
+        move_preview_circle_display(screen, dragger)
         pygame.display.flip()
         clock.tick(60)
 
