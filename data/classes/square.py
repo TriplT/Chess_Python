@@ -2,9 +2,9 @@
 
 class Square:
 
-    def __init__(self, file, rank, piece=None):
-        self.file = file
+    def __init__(self, rank, file, piece=None):
         self.rank = rank
+        self.file = file
         self.piece = piece
 
     def occupied(self):

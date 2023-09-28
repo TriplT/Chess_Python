@@ -9,8 +9,8 @@ class Dragger:
         self.dragging = False
         self.mouseX = 0
         self.mouseY = 0
-        self.initial_file = 0
         self.initial_rank = 0
+        self.initial_file = 0
 
     def update_blit(self, screen):
         img_center = (self.mouseX, self.mouseY)
