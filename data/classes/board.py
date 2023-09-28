@@ -19,13 +19,12 @@ class Board:
         self.add_startposition('white')
         self.add_startposition('black')
 
-# ersetzt jedes der 64 Nullen vom Board mit actual Square class instances. Also 64 Square classes erstellt
     def create_squares(self):
-        for file in range(files):
-            for rank in range(ranks):
-                self.squares[file][rank] = Square(file, rank)
+        for rank in range(ranks):
+            for file in range(files):
+                self.squares[rank][file] = Square(rank, file)
 
-    def calculate_valid_moves(self, piece, file, rank):
+    def calculate_valid_moves(self, piece, rank, file):
 
         def pawn_moves():
             pass
@@ -41,23 +40,23 @@ class Board:
 
         def knight_moves():
             possible_moves = [
-                (rank-2, file+1),
-                (rank-1, file+2),
-                (rank+1, file+2),
-                (rank+2, file+1),
-                (rank+2, file-1),
-                (rank+1, file-2),
-                (rank-1, file-2),
-                (rank-2, file-1)
+                (rank - 2, file + 1),
+                (rank - 1, file + 2),
+                (rank + 1, file + 2),
+                (rank + 2, file + 1),
+                (rank + 2, file - 1),
+                (rank + 1, file - 2),
+                (rank - 1, file - 2),
+                (rank - 2, file - 1)
             ]
 
             for move in possible_moves:
-                move_file, move_rank = move
+                move_rank, move_file = move
 
-                if Square.in_range(move_file, move_rank):
-                    if self.squares[move_file][move_rank].no_friendly_fire(piece.color):
+                if Square.in_range(move_rank, move_file):
+                    if self.squares[move_rank][move_file].no_friendly_fire(piece.color):
 
-                        move = Move(Square(file, rank), Square(move_file, move_rank))
+                        move = Move(Square(rank, file), Square(move_rank, move_file))
                         piece.add_move(move)
 
 
@@ -87,17 +86,17 @@ class Board:
             rank_pawn, rank_piece = (1, 0)
 
         for file in range(files):
-            self.squares[file][rank_pawn] = Square(file, rank_pawn, Pawn(color))
+            self.squares[rank_pawn][file] = Square(rank_pawn, file, Pawn(color))
 
-        self.squares[1][rank_piece] = Square(1, rank_piece, Knight(color))
-        self.squares[6][rank_piece] = Square(6, rank_piece, Knight(color))
+        self.squares[rank_piece][1] = Square(rank_piece, 1, Knight(color))
+        self.squares[rank_piece][6] = Square(rank_piece, 6, Knight(color))
 
-        self.squares[2][rank_piece] = Square(2, rank_piece, Bishop(color))
-        self.squares[5][rank_piece] = Square(5, rank_piece, Bishop(color))
+        self.squares[rank_piece][2] = Square(rank_piece, 2, Bishop(color))
+        self.squares[rank_piece][5] = Square(rank_piece, 5, Bishop(color))
 
-        self.squares[0][rank_piece] = Square(0, rank_piece, Rook(color))
-        self.squares[7][rank_piece] = Square(7, rank_piece, Rook(color))
+        self.squares[rank_piece][0] = Square(rank_piece, 0, Rook(color))
+        self.squares[rank_piece][7] = Square(rank_piece, 7, Rook(color))
 
-        self.squares[4][rank_piece] = Square(4, rank_piece, King(color))
+        self.squares[rank_piece][4] = Square(rank_piece, 4, King(color))
 
-        self.squares[3][rank_piece] = Square(3, rank_piece, Queen(color))
+        self.squares[rank_piece][3] = Square(rank_piece, 3, Queen(color))

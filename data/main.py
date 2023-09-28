@@ -39,9 +39,9 @@ def main():
                     clicked_file = (dragger.mouseX - (screen_x // 2 - 4 * square_size)) // square_size
                     clicked_rank = (dragger.mouseY - (screen_y // 2 - 4 * square_size)) // square_size
 
-                    if board.squares[clicked_file][clicked_rank].occupied():
-                        piece = board.squares[clicked_file][clicked_rank].piece
-                        board.calculate_valid_moves(piece, clicked_file, clicked_rank)
+                    if board.squares[clicked_rank][clicked_file].occupied():
+                        piece = board.squares[clicked_rank][clicked_file].piece
+                        board.calculate_valid_moves(piece, clicked_rank, clicked_file)
                         dragger.save_initial(event.pos)
                         dragger.drag_piece(piece)
 

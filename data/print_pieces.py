@@ -6,10 +6,10 @@ from classes.dragger import *
 
 
 def print_pieces(screen, board, dragger):
-    for file in range(files):
-        for rank in range(ranks):
-            if board.squares[file][rank].occupied():
-                piece = board.squares[file][rank].piece
+    for rank in range(ranks):
+        for file in range(files):
+            if board.squares[rank][file].occupied():
+                piece = board.squares[rank][file].piece
 
                 if piece is not dragger.piece:
                     image_topleft = (screen_x / 2 - 4 * sqsize) + (file * sqsize), \
