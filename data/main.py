@@ -57,7 +57,7 @@ def main():
                 pygame.quit()
                 exit()
 
-        move_preview_circle_display(screen, dragger)
+        #move_preview_circle_display(screen, dragger)
         print(move_preview_circle_display(screen, dragger))
         pygame.display.flip()
         clock.tick(60)
