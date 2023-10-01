@@ -24,7 +24,7 @@ clock = pygame.time.Clock()
 test_font = pygame.font.Font(None, 50)
 
 Piece.preload_images()
-
+print('leggo')
 
 def main():
     dragger = Dragger()
