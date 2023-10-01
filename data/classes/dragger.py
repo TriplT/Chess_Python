@@ -21,8 +21,8 @@ class Dragger:
         self.mouseX, self.mouseY = pos
 
     def save_initial(self, pos):
-        self.initial_file = pos[0] // sqsize
-        self.initial_rank = pos[1] // sqsize
+        self.initial_rank = pos[0]
+        self.initial_file = pos[1]
 
     def drag_piece(self, piece):
         self.piece = piece

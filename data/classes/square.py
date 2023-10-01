@@ -7,6 +7,9 @@ class Square:
         self.file = file
         self.piece = piece
 
+    def __eq__(self, other):
+        return self.rank == other.rank and self.file == other.file
+
     def occupied(self):
         return self.piece != None
 

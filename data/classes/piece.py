@@ -40,3 +40,6 @@ class Piece:
     # append a move into the self.moves list
     def add_move(self, move):
         self.moves.append(move)
+
+    def clear_moves(self):
+        self.moves = []

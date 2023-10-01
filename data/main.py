@@ -8,6 +8,7 @@ from classes.dragger import *
 from classes.board import *
 from classes.square import *
 from classes.piece import *
+from classes.move import *
 
 
 pygame.init()
@@ -25,6 +26,7 @@ Piece.preload_images()
 def main():
     dragger = Dragger()
     board = Board()
+    player = 'white'
     while True:
         screen.fill((0, 0, 0))
         draw_board(screen, square_size)
@@ -36,14 +38,15 @@ def main():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 dragger.update_mouse(event.pos)
                 if 560 < dragger.mouseX < 1360 and 140 < dragger.mouseY < 940:
-                    clicked_file = (dragger.mouseX - (screen_x // 2 - 4 * square_size)) // square_size
-                    clicked_rank = (dragger.mouseY - (screen_y // 2 - 4 * square_size)) // square_size
+                    clicked_file = int((dragger.mouseX - (screen_x // 2 - 4 * square_size)) // square_size)
+                    clicked_rank = int((dragger.mouseY - (screen_y // 2 - 4 * square_size)) // square_size)
 
                     if board.squares[clicked_rank][clicked_file].occupied():
                         piece = board.squares[clicked_rank][clicked_file].piece
-                        board.calculate_valid_moves(piece, clicked_rank, clicked_file)
-                        dragger.save_initial(event.pos)
-                        dragger.drag_piece(piece)
+                        if piece.color == player:
+                            board.calculate_valid_moves(piece, clicked_rank, clicked_file)
+                            dragger.save_initial((clicked_rank, clicked_file))
+                            dragger.drag_piece(piece)
 
             elif event.type == pygame.MOUSEMOTION:
                 if dragger.dragging:
@@ -51,7 +54,26 @@ def main():
                     dragger.update_blit(screen)
 
             elif event.type == pygame.MOUSEBUTTONUP:
+                if dragger.dragging:
+                    dragger.update_mouse(event.pos)
+                    released_rank = int(dragger.mouseY - (screen_y / 2 - 4 * square_size)) // square_size
+                    released_file = int(dragger.mouseX - (screen_x / 2 - 4 * square_size)) // square_size
+
+                    initial = Square(dragger.initial_rank, dragger.initial_file)
+                    final = Square(released_rank, released_file)
+                    move = Move(initial, final)
+
+                    if board.valid_move(dragger.piece, move):
+                        board.move(dragger.piece, move)
+                        screen.fill((0, 0, 0))
+                        draw_board(screen, square_size)
+                        print_pieces(screen, board, dragger)
+                        if player == 'white':
+                            player = 'black'
+                        else:
+                            player = 'white'
                 dragger.undrag_piece()
+
 
             if event.type == pygame.QUIT:
                 pygame.quit()
