@@ -43,3 +43,4 @@ class Piece:
 
     def clear_moves(self):
         self.moves = []
+

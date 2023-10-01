@@ -16,6 +16,7 @@ class Board:
     def __init__(self):
         self.squares = [[0, 0, 0, 0, 0, 0, 0, 0] for rank in range(ranks)]
         self.last_move = None
+        self.current_moves = []
         self.create_squares()
         self.add_startposition('white')
         self.add_startposition('black')
@@ -24,6 +25,13 @@ class Board:
         for rank in range(ranks):
             for file in range(files):
                 self.squares[rank][file] = Square(rank, file)
+
+    def calc_current_moves(self, dragger, piece=None):
+        if piece:
+            self.current_moves = piece.moves
+
+        if not piece:
+            self.current_moves = []
 
     def move(self, piece, move):
 

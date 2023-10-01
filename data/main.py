@@ -51,6 +51,7 @@ def main():
                         piece = board.squares[clicked_rank][clicked_file].piece
                         if piece.color == player:
                             board.calculate_valid_moves(piece, clicked_rank, clicked_file)
+                            board.calc_current_moves(dragger, piece)
                             dragger.save_initial((clicked_rank, clicked_file))
                             dragger.drag_piece(piece)
 
@@ -73,6 +74,7 @@ def main():
                         captured = board.squares[released_rank][released_file].occupied()
                         board.move(dragger.piece, move)
                         Sound().play(captured)
+                        board.calc_current_moves(dragger)
                         screen.fill((0, 0, 0))
                         draw_board(screen)
                         print_last_move(screen, board)
@@ -87,7 +89,7 @@ def main():
                 pygame.quit()
                 exit()
 
-        move_preview_circle_display(screen, dragger)
+        move_preview_circle_display(screen, dragger, board)
         pygame.display.flip()
         clock.tick(60)
 
