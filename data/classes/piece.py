@@ -20,7 +20,7 @@ class Piece:
             for name in ['pawn', 'king', 'knight', 'bishop', 'rook', 'queen']:
                 image_path = os.path.join(f'images/{color}_{name}.png')
                 image = pygame.image.load(image_path).convert_alpha()
-                cls.images[f'{color}_{name}'] = pygame.transform.smoothscale(image, (100, 100))
+                cls.images[f'{color}_{name}'] = pygame.transform.smoothscale(image, (90, 90))
 
     def __init__(self, name, color, value, img=None, img_rect=None):
         self.name = name
