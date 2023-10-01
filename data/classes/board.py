@@ -26,7 +26,7 @@ class Board:
             for file in range(files):
                 self.squares[rank][file] = Square(rank, file)
 
-    def calc_current_moves(self, dragger, piece=None):
+    def calc_current_moves(self, piece=None):
         if piece:
             self.current_moves = piece.moves
 
@@ -40,11 +40,15 @@ class Board:
 
         piece.moved = True
         piece.clear_moves()
+        self.current_moves = []
 
         self.last_move = move
 
     def valid_move(self, piece, move):
         return move in piece.moves
+
+    def valid_current_move(self, move):
+        return move in self.current_moves
 
     def calculate_valid_moves(self, piece, rank, file):
 

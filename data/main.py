@@ -51,9 +51,29 @@ def main():
                         piece = board.squares[clicked_rank][clicked_file].piece
                         if piece.color == player:
                             board.calculate_valid_moves(piece, clicked_rank, clicked_file)
-                            board.calc_current_moves(dragger, piece)
+                            board.calc_current_moves(piece)
                             dragger.save_initial((clicked_rank, clicked_file))
                             dragger.drag_piece(piece)
+
+                    if board.squares[clicked_rank][clicked_file].no_friendly_fire(player) and dragger.clicked:
+
+                        initial = Square(dragger.initial_rank, dragger.initial_file)
+                        final = Square(clicked_rank, clicked_file)
+                        move = Move(initial, final)
+
+                        if board.valid_current_move(move):
+                            captured = board.squares[clicked_rank][clicked_file].occupied()
+                            board.move(board.squares[dragger.initial_rank][dragger.initial_file].piece, move)
+                            Sound().play(captured)
+                            board.calc_current_moves()
+                            screen.fill((0, 0, 0))
+                            draw_board(screen)
+                            print_last_move(screen, board)
+                            print_pieces(screen, board, dragger)
+                            if player == 'white':
+                                player = 'black'
+                            else:
+                                player = 'white'
 
             elif event.type == pygame.MOUSEMOTION:
                 if dragger.dragging:
@@ -74,7 +94,7 @@ def main():
                         captured = board.squares[released_rank][released_file].occupied()
                         board.move(dragger.piece, move)
                         Sound().play(captured)
-                        board.calc_current_moves(dragger)
+                        board.calc_current_moves()
                         screen.fill((0, 0, 0))
                         draw_board(screen)
                         print_last_move(screen, board)
