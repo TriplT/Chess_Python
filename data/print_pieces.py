@@ -12,8 +12,8 @@ def print_pieces(screen, board, dragger):
                 piece = board.squares[rank][file].piece
 
                 if piece is not dragger.piece:
-                    image_topleft = (screen_x / 2 - 4 * sqsize) + (file * sqsize), \
-                                    (screen_y / 2 - 4 * sqsize) + (rank * sqsize)
+                    image_topleft = (screen_x / 2 - 4 * square_size) + (file * square_size), \
+                                    (screen_y / 2 - 4 * square_size) + (rank * square_size)
                     piece.img_rect = piece.img.get_rect(topleft=image_topleft)
                     screen.blit(piece.img, piece.img_rect)
 

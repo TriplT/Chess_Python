@@ -2,10 +2,13 @@
 
 class Square:
 
+    LETTERS = {0: 'a', 1: 'b', 2: 'c', 3: 'd', 4: 'e', 5: 'f', 6: 'g', 7: 'h'}
+
     def __init__(self, rank, file, piece=None):
         self.rank = rank
         self.file = file
         self.piece = piece
+        self.letter = self.LETTERS[file]
 
     def __eq__(self, other):
         return self.rank == other.rank and self.file == other.file
@@ -32,4 +35,10 @@ class Square:
                 return False
 
         return True
+
+    @staticmethod
+    def get_letter(file):
+        LETTERS = {0: 'a', 1: 'b', 2: 'c', 3: 'd', 4: 'e', 5: 'f', 6: 'g', 7: 'h'}
+        return LETTERS[file]
+
 

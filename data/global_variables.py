@@ -10,6 +10,6 @@ files = 8
 # vertical columns
 ranks = 8
 
-sqsize = b_height // files
+square_size = b_height // files
 
 

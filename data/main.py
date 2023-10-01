@@ -4,11 +4,14 @@ from get_pygame_pos import get_pygame_pos
 from draw_board import draw_board
 from print_pieces import print_pieces
 from move_preview_circle_display import move_preview_circle_display
+from print_last_move import print_last_move
+from print_current_move import print_current_move
 from classes.dragger import *
 from classes.board import *
 from classes.square import *
 from classes.piece import *
 from classes.move import *
+from classes.sound import *
 
 
 pygame.init()
@@ -29,11 +32,14 @@ def main():
     player = 'white'
     while True:
         screen.fill((0, 0, 0))
-        draw_board(screen, square_size)
+        draw_board(screen)
+        print_last_move(screen, board)
+        print_current_move(screen, dragger)
         print_pieces(screen, board, dragger)
 
         if dragger.dragging:
             dragger.update_blit(screen)
+            dragger.piece_clicked()
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 dragger.update_mouse(event.pos)
@@ -64,16 +70,18 @@ def main():
                     move = Move(initial, final)
 
                     if board.valid_move(dragger.piece, move):
+                        captured = board.squares[released_rank][released_file].occupied()
                         board.move(dragger.piece, move)
+                        Sound().play(captured)
                         screen.fill((0, 0, 0))
-                        draw_board(screen, square_size)
+                        draw_board(screen)
+                        print_last_move(screen, board)
                         print_pieces(screen, board, dragger)
                         if player == 'white':
                             player = 'black'
                         else:
                             player = 'white'
                 dragger.undrag_piece()
-
 
             if event.type == pygame.QUIT:
                 pygame.quit()

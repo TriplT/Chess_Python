@@ -7,6 +7,7 @@ class Dragger:
     def __init__(self):
         self.piece = None
         self.dragging = False
+        self.clicked = False
         self.mouseX = 0
         self.mouseY = 0
         self.initial_rank = 0
@@ -31,5 +32,8 @@ class Dragger:
     def undrag_piece(self):
         self.piece = None
         self.dragging = False
+
+    def piece_clicked(self):
+        self.clicked = True
 
 

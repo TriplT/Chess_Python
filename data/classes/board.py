@@ -75,16 +75,6 @@ class Board:
                         move = Move(initial_pos, final_pos)
                         piece.add_move(move)
 
-
-        def king_moves():
-            pass
-
-        def queen_moves():
-            pass
-
-        def bishop_moves():
-            pass
-
         def knight_moves():
             possible_moves = [
                 (rank - 2, file + 1),
@@ -105,12 +95,6 @@ class Board:
 
                         move = Move(Square(rank, file), Square(move_rank, move_file))
                         piece.add_move(move)
-
-
-
-
-        def rook_moves():
-            pass
 
         def strait_line_moves(increments):
             for increment in increments:
