@@ -6,6 +6,7 @@ from print_pieces import print_pieces
 from move_preview_circle_display import move_preview_circle_display
 from print_last_move import print_last_move
 from print_current_move import print_current_move
+from pawn_pomotion import pawn_promotion
 from classes.dragger import *
 from classes.board import *
 from classes.square import *
@@ -65,6 +66,13 @@ def main():
                             captured = board.squares[clicked_rank][clicked_file].occupied()
                             board.move(board.squares[dragger.initial_rank][dragger.initial_file].piece, move)
                             Sound().play(captured)
+                            pawn_promotion(screen, board.squares[clicked_rank][clicked_file].piece, move.final_square)
+                            '''
+                            pawn_promotion(screen, piece, move.final_square)
+                            freeze game until piece is clicked (?)
+                            if 850 < dragger.screen_x < 1070 and 430 < dragger.screen_y < 650:
+                            
+                            '''
                             board.calc_current_moves()
                             screen.fill((0, 0, 0))
                             draw_board(screen)
@@ -94,6 +102,7 @@ def main():
                         captured = board.squares[released_rank][released_file].occupied()
                         board.move(dragger.piece, move)
                         Sound().play(captured)
+                        pawn_promotion(screen, board.squares[released_rank][released_file].piece, move.final_square)
                         board.calc_current_moves()
                         screen.fill((0, 0, 0))
                         draw_board(screen)

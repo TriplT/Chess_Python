@@ -38,6 +38,8 @@ class Board:
         self.squares[move.initial_square.rank][move.initial_square.file].piece = None
         self.squares[move.final_square.rank][move.final_square.file].piece = piece
 
+        if isinstance(piece, Pawn):
+            self.check_and_print_promotion(piece, move.final_square)
         piece.moved = True
         piece.clear_moves()
         self.current_moves = []
@@ -49,6 +51,10 @@ class Board:
 
     def valid_current_move(self, move):
         return move in self.current_moves
+
+    def check_and_print_promotion(self, piece, last):
+        if last.rank == 0 or last.rank == 7:
+            self.squares[last.rank][last.file].piece = Queen(piece.color)
 
     def calculate_valid_moves(self, piece, rank, file):
 
