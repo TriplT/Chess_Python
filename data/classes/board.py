@@ -39,7 +39,7 @@ class Board:
         self.squares[move.final_square.rank][move.final_square.file].piece = piece
 
         if isinstance(piece, Pawn):
-            self.check_and_print_promotion(piece, move.final_square)
+            self.pawn_promotion(screen, piece, move.final_square)
         piece.moved = True
         piece.clear_moves()
         self.current_moves = []
@@ -52,9 +52,51 @@ class Board:
     def valid_current_move(self, move):
         return move in self.current_moves
 
-    def check_and_print_promotion(self, piece, last):
-        if last.rank == 0 or last.rank == 7:
-            self.squares[last.rank][last.file].piece = Queen(piece.color)
+    def pawn_promotion(self, screen, piece, last):
+        if isinstance(piece, Pawn) and (last.rank == 0 or last.rank == 7):
+            # create border
+            color = (255, 255, 255)
+            pygame.draw.rect(screen, color,
+                             pygame.Rect((screen_x / 2 - 120, screen_y / 2 - 120),
+                                         (2 * square_size + 40, 2 * square_size + 40)))
+
+            # create piece images
+            piece_queen_image = Piece.images[f'{piece.color}_queen']
+            piece_rook_image = Piece.images[f'{piece.color}_rook']
+            piece_bishop_image = Piece.images[f'{piece.color}_bishop']
+            piece_knight_image = Piece.images[f'{piece.color}_knight']
+
+            variables = [((screen_x / 2 - 50), (screen_y / 2 - 50)),
+                         ((screen_x / 2 + 50), (screen_y / 2 - 50)),
+                         ((screen_x / 2 - 50), (screen_y / 2 + 50)),
+                         ((screen_x / 2 + 50), (screen_y / 2 + 50))]
+
+            screen.blit(piece_queen_image, piece_queen_image.get_rect(center=variables[0]))
+            screen.blit(piece_rook_image, piece_rook_image.get_rect(center=variables[1]))
+            screen.blit(piece_bishop_image, piece_bishop_image.get_rect(center=variables[2]))
+            screen.blit(piece_knight_image, piece_knight_image.get_rect(center=variables[3]))
+            pygame.display.flip()
+
+            while True:
+                for event in pygame.event.get():
+                    if event.type == pygame.MOUSEBUTTONDOWN:
+                        x, y = event.pos
+                        if (screen_x / 2 - 95) < x < (screen_x / 2 + - 5) and (screen_y / 2 - 95) < y < (
+                                screen_y / 2 - 5):
+                            self.squares[last.rank][last.file].piece = Queen(piece.color)
+                            return
+                        elif (screen_x / 2 + 5) < x < (screen_x / 2 + 95) and (screen_y / 2 - 95) < y < (
+                                screen_y / 2 + - 5):
+                            self.squares[last.rank][last.file].piece = Rook(piece.color)
+                            return
+                        elif (screen_x / 2 - 95) < x < (screen_x / 2 - 5) and (screen_y / 2 + 5) < y < (
+                                screen_y / 2 + 95):
+                            self.squares[last.rank][last.file].piece = Bishop(piece.color)
+                            return
+                        elif (screen_x / 2 + 5) < x < (screen_x / 2 + 95) and (screen_y / 2 + 5) < y < (
+                                screen_y / 2 + 95):
+                            self.squares[last.rank][last.file].piece = Knight(piece.color)
+                            return
 
     def calculate_valid_moves(self, piece, rank, file):
 

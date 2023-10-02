@@ -29,3 +29,16 @@ def pawn_promotion(screen, piece, last):
         screen.blit(piece_rook_image, piece_rook_image.get_rect(center=variables[1]))
         screen.blit(piece_bishop_image, piece_bishop_image.get_rect(center=variables[2]))
         screen.blit(piece_knight_image, piece_knight_image.get_rect(center=variables[3]))
+
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    x, y = event.pos
+                    if (screen_x / 2 - 110) < x < (screen_x / 2 + 90) and (screen_y / 2 - 110) < y < (
+                            screen_y / 2 + 90):
+                        self.squares[last.rank][last.file].piece = Queen(piece.color)
+                        return
+                    elif (screen_x / 2 + 10) < x < (screen_x / 2 + 210) and (screen_y / 2 - 110) < y < (
+                            screen_y / 2 + 90):
+                        self.squares[last.rank][last.file].piece = Rook(piece.color)
+                        return
