@@ -9,8 +9,8 @@ def move_preview_circle_display(screen, dragger, board):
         for move in board.current_moves:
             image_center = (screen_x / 2 - 4 * square_size) + (move.final_square.file * square_size) + (square_size / 2), \
                            (screen_y / 2 - 4 * square_size) + (move.final_square.rank * square_size) + (square_size / 2)
-            screen.blit(Piece.circle_image[f'move_preview_circle'],
-                        Piece.circle_image[f'move_preview_circle'].get_rect(center=image_center))
+            screen.blit(Piece.other_images[f'move_preview_circle'],
+                        Piece.other_images[f'move_preview_circle'].get_rect(center=image_center))
 
 
 

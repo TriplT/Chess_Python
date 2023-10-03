@@ -61,10 +61,10 @@ class Board:
                                          (2 * square_size + 40, 2 * square_size + 40)))
 
             # create piece images
-            piece_queen_image = Piece.images[f'{piece.color}_queen']
-            piece_rook_image = Piece.images[f'{piece.color}_rook']
-            piece_bishop_image = Piece.images[f'{piece.color}_bishop']
-            piece_knight_image = Piece.images[f'{piece.color}_knight']
+            piece_queen_image = Piece.piece_images[f'{piece.color}_queen']
+            piece_rook_image = Piece.piece_images[f'{piece.color}_rook']
+            piece_bishop_image = Piece.piece_images[f'{piece.color}_bishop']
+            piece_knight_image = Piece.piece_images[f'{piece.color}_knight']
 
             variables = [((screen_x / 2 - 50), (screen_y / 2 - 50)),
                          ((screen_x / 2 + 50), (screen_y / 2 - 50)),
@@ -97,6 +97,14 @@ class Board:
                                 screen_y / 2 + 95):
                             self.squares[last.rank][last.file].piece = Knight(piece.color)
                             return
+        if isinstance(piece, King):
+            if self.castling(initial_square, final_square):
+                diff = initial_square.rank, initial_square.file
+                rook = piece.left_rook if (diff < 0) else piece.right_rook
+                self.move(rook, rook.moves[-1])
+
+    def castling(self, initial, final):
+        return abs(initial.file - final.file) == 2
 
     def calculate_valid_moves(self, piece, rank, file):
 
@@ -200,6 +208,47 @@ class Board:
                         final = Square(possible_move_rank, possible_move_file)
                         move = Move(initial, final)
                         piece.add_move(move)
+
+        if not piece.moved:
+            left_rook = self.squares[rank][0]
+            if isinstance(left_rook, Rook):
+                if not left_rook.moved:
+                    for c in range(1, 4):
+                        if self.squares[rank][c].occupied():
+                            break
+                        if c == 3:
+                            piece.left_rook = left_rook
+
+                            initial = Square(rank, 0)
+                            final = Square(rank, 3)
+                            move = Move(initial, final)
+                            left_rook.add_move(move)
+
+                            initial = Square(rank, file)
+                            final = Square(rank, 2)
+                            move = Move(initial, final)
+                            piece.add_move(move)
+
+                right_rook = self.squares[rank][7]
+                if isinstance(right_rook, Rook):
+                    if not right_rook.moved:
+                        for c in range(5, 7):
+                            if self.squares[rank][c].occupied():
+                                break
+                            if c == 6:
+                                piece.right_rook = right_rook
+
+                                initial = Square(rank, 7)
+                                final = Square(rank, 5)
+                                move = Move(initial, final)
+                                left_rook.add_move(move)
+
+                                initial = Square(rank, file)
+                                final = Square(rank, 6)
+                                move = Move(initial, final)
+                                piece.add_move(move)
+
+
 
         if isinstance(piece, Pawn): pawn_moves()
         elif isinstance(piece, King): king_moves()

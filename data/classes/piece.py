@@ -4,8 +4,8 @@ import pygame
 
 class Piece:
     # store scaled images into a dictionary
-    images = {}
-    circle_image = {}
+    piece_images = {}
+    other_images = {}
 
     @classmethod
     def preload_images(cls):
@@ -13,14 +13,28 @@ class Piece:
         # chess move preview circle
         img_path = os.path.join(f'images/move_preview_circle.png')
         img = pygame.image.load(img_path).convert_alpha()
-        cls.circle_image[f'move_preview_circle'] = pygame.transform.smoothscale(img, (100, 100))
+        cls.other_images[f'move_preview_circle'] = pygame.transform.smoothscale(img, (100, 100))
+
+        '''
+        img_path = os.path.join(f'images/move_preview_circle.png')
+        img = pygame.image.load(img_path).convert_alpha()
+        cls.other_images[f'move_preview_circle'] = pygame.transform.smoothscale(img, (100, 100))
+        
+        img_path = os.path.join(f'images/move_preview_circle.png')
+        img = pygame.image.load(img_path).convert_alpha()
+        cls.other_images[f'move_preview_circle'] = pygame.transform.smoothscale(img, (100, 100))
+        
+        img_path = os.path.join(f'images/move_preview_circle.png')
+        img = pygame.image.load(img_path).convert_alpha()
+        cls.other_images[f'move_preview_circle'] = pygame.transform.smoothscale(img, (100, 100))
+        '''
 
         # chess piece images
         for color in ['white', 'black']:
             for name in ['pawn', 'king', 'knight', 'bishop', 'rook', 'queen']:
                 image_path = os.path.join(f'images/{color}_{name}.png')
                 image = pygame.image.load(image_path).convert_alpha()
-                cls.images[f'{color}_{name}'] = pygame.transform.smoothscale(image, (90, 90))
+                cls.piece_images[f'{color}_{name}'] = pygame.transform.smoothscale(image, (90, 90))
 
     def __init__(self, name, color, value, img=None, img_rect=None):
         self.name = name
@@ -34,7 +48,7 @@ class Piece:
 
         self.preload_images()
         self.img = img
-        self.img = self.images[f'{color}_{name}']
+        self.img = self.piece_images[f'{color}_{name}']
         self.img_rect = img_rect
 
     # append a move into the self.moves list

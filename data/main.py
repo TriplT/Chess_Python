@@ -6,7 +6,6 @@ from print_pieces import print_pieces
 from move_preview_circle_display import move_preview_circle_display
 from print_last_move import print_last_move
 from print_current_move import print_current_move
-from pawn_pomotion import pawn_promotion
 from classes.dragger import *
 from classes.board import *
 from classes.square import *
