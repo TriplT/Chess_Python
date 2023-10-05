@@ -62,6 +62,7 @@ def main():
                         move = Move(initial, final)
 
                         if board.valid_current_move(move):
+                            print(board.squares[dragger.initial_rank][dragger.initial_file].piece.moves)
                             captured = board.squares[clicked_rank][clicked_file].occupied()
                             board.move(board.squares[dragger.initial_rank][dragger.initial_file].piece, move)
                             Sound().play(captured)
