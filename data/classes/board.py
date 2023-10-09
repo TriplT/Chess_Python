@@ -43,12 +43,10 @@ class Board:
 
         if isinstance(piece, King):
             if self.castling(move.initial_square, move.final_square):
+                print(move.initial_square.rank, move.initial_square.file, move.final_square.rank, move.final_square.file)
                 diff = move.final_square.file - move.initial_square.file
                 rook = piece.left_rook if (diff < 0) else piece.right_rook
-                self.calculate_valid_moves(rook, move.initial_square.rank, move.initial_square.file)
-                print(rook.moves)
                 self.move(rook, rook.moves[-1])
-
 
         piece.moved = True
         piece.clear_moves()
@@ -241,12 +239,13 @@ class Board:
                             if self.squares[rank][c].occupied():
                                 break
                             if c == 6:
+                                print('yes')
                                 piece.right_rook = right_rook
 
                                 initial = Square(rank, 7)
                                 final = Square(rank, 5)
                                 move = Move(initial, final)
-                                left_rook.add_move(move)
+                                right_rook.add_move(move)
 
                                 initial = Square(rank, file)
                                 final = Square(rank, 6)
