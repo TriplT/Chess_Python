@@ -47,22 +47,12 @@ def main():
                     clicked_file = int((dragger.mouseX - (screen_x // 2 - 4 * square_size)) // square_size)
                     clicked_rank = int((dragger.mouseY - (screen_y // 2 - 4 * square_size)) // square_size)
 
-                    if board.squares[clicked_rank][clicked_file].occupied():
-                        piece = board.squares[clicked_rank][clicked_file].piece
-                        if piece.color == player:
-                            board.calculate_valid_moves(piece, clicked_rank, clicked_file)
-                            board.calc_current_moves(piece)
-                            dragger.save_initial((clicked_rank, clicked_file))
-                            dragger.drag_piece(piece)
-
                     if board.squares[clicked_rank][clicked_file].no_friendly_fire(player) and dragger.clicked:
-
                         initial = Square(dragger.initial_rank, dragger.initial_file)
                         final = Square(clicked_rank, clicked_file)
                         move = Move(initial, final)
 
                         if board.valid_current_move(move):
-                            print(board.squares[dragger.initial_rank][dragger.initial_file].piece.moves)
                             captured = board.squares[clicked_rank][clicked_file].occupied()
                             board.move(board.squares[dragger.initial_rank][dragger.initial_file].piece, move)
                             Sound().play(captured)
@@ -75,6 +65,14 @@ def main():
                                 player = 'black'
                             else:
                                 player = 'white'
+
+                    if board.squares[clicked_rank][clicked_file].occupied():
+                        piece = board.squares[clicked_rank][clicked_file].piece
+                        if piece.color == player:
+                            board.calculate_valid_moves(piece, clicked_rank, clicked_file, bool=True)
+                            board.calc_current_moves(piece)
+                            dragger.save_initial((clicked_rank, clicked_file))
+                            dragger.drag_piece(piece)
 
             elif event.type == pygame.MOUSEMOTION:
                 if dragger.dragging:
