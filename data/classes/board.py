@@ -110,31 +110,14 @@ class Board:
 
     def castling(self, initial, final):
         return abs(initial.file - final.file) == 2
-    '''
-        def in_checkkkk(self, piece, move):
-        temp_piece = copy.deepcopy(piece)
-        temp_board = copy.deepcopy(self)
 
-        temp_board.move(temp_piece, move)
-
-        for rank in range(ranks):
-            for file in range(files):
-                if temp_board.squares[rank][file].occupied_by_opponent(piece.color):
-                    p = temp_board.squares[rank][file].piece
-                    temp_board.calculate_valid_moves(p, rank, file, bool=False)
-                    for m in p.moves:
-                        if isinstance(m.final_square.piece, King):
-                            return True
-        return False
-    '''
     def move_check_simulation(self, piece, move):
 
         self.squares[move.initial_square.rank][move.initial_square.file].piece = None
         self.squares[move.final_square.rank][move.final_square.file].piece = piece
 
-    def in_check(self, piece, move, initial_pos, final_pos):
-        final_pos_piece = self.squares[final_pos.rank][final_pos.file].piece
-        print('in_check aufgerufen')
+    def in_check(self, piece, move):
+        final_pos_piece = self.squares[move.final_square.rank][move.final_square.file].piece
         self.move_check_simulation(piece, move)
 
         for rank in range(ranks):
@@ -142,24 +125,20 @@ class Board:
                 if self.squares[rank][file].occupied_by_opponent(piece.color):
                     p = self.squares[rank][file].piece
                     self.calculate_valid_moves(p, rank, file, bool=False)
-                    print('berechnung moves gegnerischer pieces')
 
                     for m in p.moves:
                         if isinstance(m.final_square.piece, King):
-                            print('king wird von gegnerischen piece angegriffen')
-                            self.squares[initial_pos.rank][initial_pos.file].piece = piece
-                            self.squares[final_pos.rank][final_pos.file].piece = final_pos_piece
+                            self.squares[move.initial_square.rank][move.initial_square.file].piece = piece
+                            self.squares[move.final_square.rank][move.final_square.file].piece = final_pos_piece
                             p.moves = []
                             return True
                     p.moves = []
 
-        self.squares[initial_pos.rank][initial_pos.file].piece = piece
-        self.squares[final_pos.rank][final_pos.file].piece = final_pos_piece
-        print('xxx')
+        self.squares[move.initial_square.rank][move.initial_square.file].piece = piece
+        self.squares[move.final_square.rank][move.final_square.file].piece = final_pos_piece
         return False
 
     def calculate_valid_moves(self, piece, rank, file, bool):
-        print('calc')
 
         def pawn_moves():
             steps = 1 if piece.moved else 2
@@ -176,11 +155,9 @@ class Board:
                         move = Move(initial_pos, final_pos)
 
                         if bool:
-                            if not self.in_check(piece, move, initial_pos, final_pos):
-                                print('no check')
+                            if not self.in_check(piece, move):
                                 piece.add_move(move)
                         else:
-                            print('simulation')
                             piece.add_move(move)
 
                     # pawn is blocked by piece
@@ -200,9 +177,13 @@ class Board:
                         initial_pos = Square(rank, file)
                         final_piece = self.squares[possible_move_rank][possible_move_file].piece
                         final_pos = Square(possible_move_rank, possible_move_file, final_piece)
-
                         move = Move(initial_pos, final_pos)
-                        piece.add_move(move)
+
+                        if bool:
+                            if not self.in_check(piece, move):
+                                piece.add_move(move)
+                        else:
+                            piece.add_move(move)
 
         def knight_moves():
             possible_moves = [
@@ -223,7 +204,12 @@ class Board:
                     if self.squares[move_rank][move_file].no_friendly_fire(piece.color):
                         final_piece = self.squares[move_rank][move_file].piece
                         move = Move(Square(rank, file), Square(move_rank, move_file, final_piece))
-                        piece.add_move(move)
+                        if bool:
+                            if not self.in_check(piece, move):
+                                piece.add_move(move)
+                            else: break
+                        else:
+                            piece.add_move(move)
 
         def strait_line_moves(increments):
             for increment in increments:
@@ -238,9 +224,17 @@ class Board:
                         final = Square(possible_move_rank, possible_move_file, final_piece)
                         move = Move(initial, final)
                         if self.squares[possible_move_rank][possible_move_file].occupied_by_noone():
-                            piece.add_move(move)
+                            if bool:
+                                if not self.in_check(piece, move):
+                                    piece.add_move(move)
+                            else:
+                                piece.add_move(move)
                         elif self.squares[possible_move_rank][possible_move_file].occupied_by_opponent(piece.color):
-                            piece.add_move(move)
+                            if bool:
+                                if not self.in_check(piece, move):
+                                    piece.add_move(move)
+                            else:
+                                piece.add_move(move)
                             break
                         elif self.squares[possible_move_rank][possible_move_file].occupied_by_teammate(piece.color):
                             break
@@ -269,7 +263,12 @@ class Board:
                         initial = Square(rank, file)
                         final = Square(possible_move_rank, possible_move_file)
                         move = Move(initial, final)
-                        piece.add_move(move)
+                        if bool:
+                            if not self.in_check(piece, move):
+                                piece.add_move(move)
+                            else: break
+                        else:
+                            piece.add_move(move)
 
             if not piece.moved:
                 left_rook = self.squares[rank][0].piece
@@ -283,13 +282,19 @@ class Board:
 
                                 initial = Square(rank, 0)
                                 final = Square(rank, 3)
-                                move = Move(initial, final)
-                                left_rook.add_move(move)
+                                move_rook = Move(initial, final)
 
                                 initial = Square(rank, file)
                                 final = Square(rank, 2)
-                                move = Move(initial, final)
-                                piece.add_move(move)
+                                move_king = Move(initial, final)
+
+                                if bool:
+                                    if not self.in_check(piece, move_rook) and not self.in_check(piece, move_king):
+                                        left_rook.add_move(move_rook)
+                                        piece.add_move(move_king)
+                                else:
+                                    left_rook.add_move(move_rook)
+                                    piece.add_move(move_king)
 
                 right_rook = self.squares[rank][7].piece
                 if isinstance(right_rook, Rook):
@@ -303,13 +308,19 @@ class Board:
 
                                 initial = Square(rank, 7)
                                 final = Square(rank, 5)
-                                move = Move(initial, final)
-                                right_rook.add_move(move)
+                                move_rook = Move(initial, final)
 
                                 initial = Square(rank, file)
                                 final = Square(rank, 6)
-                                move = Move(initial, final)
-                                piece.add_move(move)
+                                move_king = Move(initial, final)
+
+                                if bool:
+                                    if not self.in_check(piece, move_rook) and not self.in_check(piece, move_king):
+                                        right_rook.add_move(move_rook)
+                                        piece.add_move(move_king)
+                                else:
+                                    right_rook.add_move(move_rook)
+                                    piece.add_move(move_king)
 
         if isinstance(piece, Pawn): pawn_moves()
         elif isinstance(piece, King): king_moves()
