@@ -303,7 +303,6 @@ class Board:
                             if self.squares[rank][c].occupied():
                                 break
                             if c == 6:
-                                print('yes')
                                 piece.right_rook = right_rook
 
                                 initial = Square(rank, 7)
