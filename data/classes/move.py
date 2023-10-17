@@ -5,4 +5,6 @@ class Move:
         self.final_square = final_square
 
     def __eq__(self, other):
+        if other is None:
+            return False
         return self.initial_square == other.initial_square and self.final_square == other.final_square

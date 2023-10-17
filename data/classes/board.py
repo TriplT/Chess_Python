@@ -19,6 +19,7 @@ class Board:
     def __init__(self):
         self.squares = [[0, 0, 0, 0, 0, 0, 0, 0] for rank in range(ranks)]
         self.last_move = None
+        self.last_piece = None
         self.current_moves = []
         self.create_squares()
         self.add_startposition('white')
@@ -42,6 +43,7 @@ class Board:
         self.squares[move.final_square.rank][move.final_square.file].piece = piece
 
         if isinstance(piece, Pawn):
+            self.en_passant(piece, move, self.last_move)
             self.pawn_promotion(screen, piece, move.final_square)
 
         if isinstance(piece, King):
@@ -55,6 +57,7 @@ class Board:
         self.current_moves = []
 
         self.last_move = move
+        self.last_piece = piece
 
     def valid_move(self, piece, move):
         return move in piece.moves
@@ -110,6 +113,11 @@ class Board:
 
     def castling(self, initial, final):
         return abs(initial.file - final.file) == 2
+
+    def en_passant(self, piece, move, last_move):
+        if piece.en_passant and move.final_square.file == last_move.final_square.file:
+            self.squares[last_move.final_square.rank][last_move.final_square.file].piece = None
+            piece.en_passant = False
 
     def move_check_simulation(self, piece, move):
 
@@ -184,6 +192,28 @@ class Board:
                                 piece.add_move(move)
                         else:
                             piece.add_move(move)
+
+            if self.last_move is not None:
+                last_initial = self.last_move.initial_square
+                last_final = self.last_move.final_square
+
+                if isinstance(self.last_piece, Pawn):
+                    if abs(last_final.rank - last_initial.rank) > 1 and last_final.rank == rank:
+                        for possible_move_file in possible_move_files:
+                            if Square.in_range(possible_move_rank, possible_move_file):
+                                if self.squares[rank][possible_move_file].piece == self.last_piece:
+                                    initial_pos = Square(rank, file)
+                                    final_piece = self.squares[possible_move_rank][possible_move_file].piece
+                                    final_pos = Square(possible_move_rank, possible_move_file, final_piece)
+                                    move = Move(initial_pos, final_pos)
+
+                                    if bool:
+                                        if not self.in_check(piece, move):
+                                            piece.add_move(move)
+                                            piece.en_passant = True
+                                    else:
+                                        piece.add_move(move)
+                                        piece.en_passant = True
 
         def knight_moves():
             possible_moves = [
@@ -266,7 +296,6 @@ class Board:
                         if bool:
                             if not self.in_check(piece, move):
                                 piece.add_move(move)
-                            else: break
                         else:
                             piece.add_move(move)
 
@@ -288,8 +317,11 @@ class Board:
                                 final = Square(rank, 2)
                                 move_king = Move(initial, final)
 
+                                # move to check whether the king moves through check when castling
+                                between_move = Move(Square(rank, 3), Square(rank, 3))
+
                                 if bool:
-                                    if not self.in_check(piece, move_rook) and not self.in_check(piece, move_king):
+                                    if not self.in_check(piece, move_king) and not self.in_check(piece, between_move):
                                         left_rook.add_move(move_rook)
                                         piece.add_move(move_king)
                                 else:
@@ -313,8 +345,10 @@ class Board:
                                 final = Square(rank, 6)
                                 move_king = Move(initial, final)
 
+                                between_move = Move(Square(rank, 5), Square(rank, 5))
+
                                 if bool:
-                                    if not self.in_check(piece, move_rook) and not self.in_check(piece, move_king):
+                                    if not self.in_check(piece, move_king) and not self.in_check(piece, between_move):
                                         right_rook.add_move(move_rook)
                                         piece.add_move(move_king)
                                 else:

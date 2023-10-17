@@ -15,20 +15,6 @@ class Piece:
         img = pygame.image.load(img_path).convert_alpha()
         cls.other_images[f'move_preview_circle'] = pygame.transform.smoothscale(img, (100, 100))
 
-        '''
-        img_path = os.path.join(f'images/move_preview_circle.png')
-        img = pygame.image.load(img_path).convert_alpha()
-        cls.other_images[f'move_preview_circle'] = pygame.transform.smoothscale(img, (100, 100))
-        
-        img_path = os.path.join(f'images/move_preview_circle.png')
-        img = pygame.image.load(img_path).convert_alpha()
-        cls.other_images[f'move_preview_circle'] = pygame.transform.smoothscale(img, (100, 100))
-        
-        img_path = os.path.join(f'images/move_preview_circle.png')
-        img = pygame.image.load(img_path).convert_alpha()
-        cls.other_images[f'move_preview_circle'] = pygame.transform.smoothscale(img, (100, 100))
-        '''
-
         # chess piece images
         for color in ['white', 'black']:
             for name in ['pawn', 'king', 'knight', 'bishop', 'rook', 'queen']:

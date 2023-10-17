@@ -14,7 +14,7 @@ class Square:
         return self.rank == other.rank and self.file == other.file
 
     def occupied(self):
-        return self.piece != None
+        return self.piece is not None
 
     def occupied_by_noone(self):
         return not self.occupied()
