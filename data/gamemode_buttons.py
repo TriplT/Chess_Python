@@ -1,5 +1,6 @@
 import global_variables
 from global_variables import *
+from classes.board import *
 
 
 def draw_game_mode_buttons(screen, width, height):
@@ -28,16 +29,25 @@ def draw_game_mode_buttons(screen, width, height):
     screen.blit(bottom_text, bottom_text_rect)
 
 
-def check_game_mode_buttons(dragger, width, height):
+def check_game_mode_buttons(dragger, board, width, height):
     middleX, middleY = screen_x / 20, screen_y / 2 - (height / 2)
     topX, topY = middleX, middleY - height - (height / 2)
     bottomX, bottomY = middleX, middleY + height + (height / 2)
 
     if topX < dragger.mouseX < (topX + width) and topY < dragger.mouseY < (topY + height):
+        board.reset_board()
+        board.add_startposition('white')
+        board.add_startposition('black')
         return 'pvp'
     elif middleX < dragger.mouseX < (middleX + width) and middleY < dragger.mouseY < (middleY + height):
+        board.reset_board()
+        board.add_startposition('white')
+        board.add_startposition('black')
         return 'pva'
     elif bottomX < dragger.mouseX < (bottomX + width) and bottomY < dragger.mouseY < (bottomY + height):
+        board.reset_board()
+        board.add_startposition('white')
+        board.add_startposition('black')
         return 'ava'
 
 

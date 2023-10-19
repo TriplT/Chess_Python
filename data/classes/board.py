@@ -382,6 +382,11 @@ class Board:
             (0, -1),
             (1, 0)])
 
+    def reset_board(self):
+        for rank in range(ranks):
+            for file in range(files):
+                self.squares[rank][file].piece = None
+
     def add_startposition(self, color):
         if color == 'white':
             rank_pawn, rank_piece = (6, 7)

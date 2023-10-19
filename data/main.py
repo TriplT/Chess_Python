@@ -47,7 +47,8 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 dragger.update_mouse(event.pos)
-                game_mode = check_game_mode_buttons(dragger, 350, 120)
+                game_mode = check_game_mode_buttons(dragger, board, 350, 120)
+
                 if 560 < dragger.mouseX < 1360 and 140 < dragger.mouseY < 940:
                     clicked_file = int((dragger.mouseX - (screen_x // 2 - 4 * square_size)) // square_size)
                     clicked_rank = int((dragger.mouseY - (screen_y // 2 - 4 * square_size)) // square_size)
