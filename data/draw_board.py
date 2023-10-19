@@ -4,8 +4,6 @@ from global_variables import *
 
 
 def draw_board(screen):
-    screen_x = 1920
-    screen_y = 1080
     board = pygame.Surface((square_size * 8, square_size * 8))
     board.fill((118, 150, 86))
     for rank in range(ranks):

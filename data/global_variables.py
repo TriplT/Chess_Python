@@ -17,3 +17,4 @@ ranks = 8
 square_size = b_height // files
 
 
+

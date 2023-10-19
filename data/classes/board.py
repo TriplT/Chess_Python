@@ -12,6 +12,7 @@ from Pycharm_Projects.Chess_Test.data.classes.pieces.queen import Queen
 from Pycharm_Projects.Chess_Test.data.classes.square import *
 from Pycharm_Projects.Chess_Test.data.global_variables import *
 from Pycharm_Projects.Chess_Test.data.classes.move import Move
+from Pycharm_Projects.Chess_Test.data.gamemode_buttons import draw_game_mode_buttons
 
 
 class Board:
@@ -88,6 +89,7 @@ class Board:
             screen.blit(piece_rook_image, piece_rook_image.get_rect(center=variables[1]))
             screen.blit(piece_bishop_image, piece_bishop_image.get_rect(center=variables[2]))
             screen.blit(piece_knight_image, piece_knight_image.get_rect(center=variables[3]))
+            draw_game_mode_buttons(screen, 350, 120)
             pygame.display.flip()
 
             while True:
