@@ -12,7 +12,7 @@ from Pycharm_Projects.Chess_Test.data.classes.pieces.queen import Queen
 from Pycharm_Projects.Chess_Test.data.classes.square import *
 from Pycharm_Projects.Chess_Test.data.global_variables import *
 from Pycharm_Projects.Chess_Test.data.classes.move import Move
-from Pycharm_Projects.Chess_Test.data.gamemode_buttons import draw_game_mode_buttons
+from Pycharm_Projects.Chess_Test.data.classes.game import *
 
 
 class Board:
@@ -38,14 +38,14 @@ class Board:
         if not piece:
             self.current_moves = []
 
-    def move(self, piece, move):
+    def move(self, piece, move, game):
 
         self.squares[move.initial_square.rank][move.initial_square.file].piece = None
         self.squares[move.final_square.rank][move.final_square.file].piece = piece
 
         if isinstance(piece, Pawn):
             self.en_passant(piece, move, self.last_move)
-            self.pawn_promotion(screen, piece, move.final_square)
+            self.pawn_promotion(screen, piece, move.final_square, game)
 
         if isinstance(piece, King):
             if self.castling(move.initial_square, move.final_square):
@@ -66,7 +66,7 @@ class Board:
     def valid_current_move(self, move):
         return move in self.current_moves
 
-    def pawn_promotion(self, screen, piece, last):
+    def pawn_promotion(self, screen, piece, last, game):
         if isinstance(piece, Pawn) and (last.rank == 0 or last.rank == 7):
             # create border
             color = (255, 255, 255)
@@ -89,7 +89,7 @@ class Board:
             screen.blit(piece_rook_image, piece_rook_image.get_rect(center=variables[1]))
             screen.blit(piece_bishop_image, piece_bishop_image.get_rect(center=variables[2]))
             screen.blit(piece_knight_image, piece_knight_image.get_rect(center=variables[3]))
-            draw_game_mode_buttons(screen, 350, 120)
+            game.draw_game_mode_buttons(screen, 350, 120)
             pygame.display.flip()
 
             while True:

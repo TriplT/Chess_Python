@@ -12,6 +12,7 @@ from classes.dragger import *
 from classes.board import *
 from classes.square import *
 from classes.piece import *
+from classes.game import *
 from classes.move import *
 from classes.sound import *
 
@@ -31,8 +32,7 @@ global game_mode
 def main():
     dragger = Dragger()
     board = Board()
-    player = 'white'
-    game_mode = 'pvp'
+    game = Game('pvp', 'white')
 
     while True:
         screen.fill((0, 0, 0))
@@ -47,34 +47,31 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 dragger.update_mouse(event.pos)
-                game_mode = check_game_mode_buttons(dragger, board, 350, 120)
+                game.check_game_mode_buttons(dragger, board, 350, 120)
 
                 if 560 < dragger.mouseX < 1360 and 140 < dragger.mouseY < 940:
                     clicked_file = int((dragger.mouseX - (screen_x // 2 - 4 * square_size)) // square_size)
                     clicked_rank = int((dragger.mouseY - (screen_y // 2 - 4 * square_size)) // square_size)
 
-                    if board.squares[clicked_rank][clicked_file].no_friendly_fire(player) and dragger.clicked:
+                    if board.squares[clicked_rank][clicked_file].no_friendly_fire(game.player) and dragger.clicked:
                         initial = Square(dragger.initial_rank, dragger.initial_file)
                         final = Square(clicked_rank, clicked_file)
                         move = Move(initial, final)
 
                         if board.valid_current_move(move):
                             captured = board.squares[clicked_rank][clicked_file].occupied()
-                            board.move(board.squares[dragger.initial_rank][dragger.initial_file].piece, move)
+                            board.move(board.squares[dragger.initial_rank][dragger.initial_file].piece, move, game)
                             Sound().play(captured)
                             board.calc_current_moves()
                             screen.fill((0, 0, 0))
                             draw_board(screen)
                             print_last_move(screen, board)
                             print_pieces(screen, board, dragger)
-                            if player == 'white':
-                                player = 'black'
-                            else:
-                                player = 'white'
+                            game.turn_made()
 
                     if board.squares[clicked_rank][clicked_file].occupied():
                         piece = board.squares[clicked_rank][clicked_file].piece
-                        if piece.color == player:
+                        if piece.color == game.player:
                             board.calculate_valid_moves(piece, clicked_rank, clicked_file, bool=True)
                             board.calc_current_moves(piece)
                             dragger.save_initial((clicked_rank, clicked_file))
@@ -97,17 +94,14 @@ def main():
 
                     if board.valid_move(dragger.piece, move):
                         captured = board.squares[released_rank][released_file].occupied()
-                        board.move(dragger.piece, move)
+                        board.move(dragger.piece, move, game)
                         Sound().play(captured)
                         board.calc_current_moves()
                         screen.fill((0, 0, 0))
                         draw_board(screen)
                         print_last_move(screen, board)
                         print_pieces(screen, board, dragger)
-                        if player == 'white':
-                            player = 'black'
-                        else:
-                            player = 'white'
+                        game.turn_made()
                 dragger.undrag_piece()
 
             if event.type == pygame.QUIT:
@@ -115,7 +109,7 @@ def main():
                 exit()
 
         move_preview_circle_display(screen, dragger, board)
-        draw_game_mode_buttons(screen, 350, 120)
+        game.draw_game_mode_buttons(screen, 350, 120)
         pygame.display.flip()
         clock.tick(60)
 
