@@ -386,10 +386,47 @@ class Board:
             (0, -1),
             (1, 0)])
 
+    def game_end(self, game):
+        # checkmate or stalemate
+        check = False
+        no_stalemate = False
+        for rank in range(ranks):
+            for file in range(files):
+                # checkmate
+                if self.squares[rank][file].occupied_by_opponent(game.player):
+                    p = self.squares[rank][file].piece
+                    self.calculate_valid_moves(p, rank, file, bool=False)
+
+                    for m in p.moves:
+                        if isinstance(m.final_square.piece, King):
+                            p.moves = []
+                            check = True
+                    p.moves = []
+                # stalemate
+                if self.squares[rank][file].occupied_by_teammate(game.player):
+                    p = self.squares[rank][file].piece
+                    if p:
+                        self.calculate_valid_moves(p, rank, file, bool=False)
+                        if p.moves:
+                            p.moves = []
+                            no_stalemate = True
+        if not no_stalemate and check:
+            return 'checkmate'
+
+        if not no_stalemate:
+            return 'stalemate'
+
+        # repetition
+        # 50 move-rule
+        # insufficient material
+        return False
+
     def reset_board(self):
         for rank in range(ranks):
             for file in range(files):
                 self.squares[rank][file].piece = None
+        self.current_moves = []
+        self.last_move = None
 
     def add_startposition(self, color):
         if color == 'white':

@@ -42,7 +42,14 @@ def main():
         print_last_move(screen, board)
         print_current_move(screen, dragger)
         print_pieces(screen, board, dragger)
-        
+
+        '''
+        message = board.game_end(game)
+        print(message)
+        if message:
+            game.game_end_display(screen, message, 350, 120)
+        '''
+
         if game.player == ai_1.color:
             # sound?
             ai_1.pieces = board.save_pieces(ai_1.color)
@@ -54,6 +61,7 @@ def main():
             game.turn_made()
 
         if game.player == ai_2.color:
+            ai_2.pieces = board.save_pieces(ai_2.color)
             ai_2.play_random(board)
             screen.fill((0, 0, 0))
             draw_board(screen)
@@ -71,9 +79,10 @@ def main():
                 if game.game_mode == 'pvp':
                     ai_1.color = None
                     ai_2.color = None
-                elif game.game_mode == 'ava' or 'pva':
+                elif game.game_mode == 'pva':
                     ai_1.color = 'black'
                 elif game.game_mode == 'ava':
+                    ai_1.color = 'black'
                     ai_2.color = 'white'
 
                 if 560 < dragger.mouseX < 1360 and 140 < dragger.mouseY < 940:
