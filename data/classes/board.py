@@ -419,4 +419,5 @@ class Board:
             for file in range(files):
                 if self.squares[rank][file].occupied_by_teammate(color):
                     lst.append((rank, file))
+        return lst
 

@@ -33,7 +33,8 @@ def main():
     dragger = Dragger()
     board = Board()
     game = Game('pvp', 'white')
-    ai = AI(0, 0, 1, board, 'white')
+    ai_1 = AI(0, 0, 1, None)
+    ai_2 = AI(0, 0, 1, None)
 
     while True:
         screen.fill((0, 0, 0))
@@ -41,6 +42,24 @@ def main():
         print_last_move(screen, board)
         print_current_move(screen, dragger)
         print_pieces(screen, board, dragger)
+        
+        if game.player == ai_1.color:
+            # sound?
+            ai_1.pieces = board.save_pieces(ai_1.color)
+            ai_1.play_random(board)
+            screen.fill((0, 0, 0))
+            draw_board(screen)
+            print_last_move(screen, board)
+            print_pieces(screen, board, dragger)
+            game.turn_made()
+
+        if game.player == ai_2.color:
+            ai_2.play_random(board)
+            screen.fill((0, 0, 0))
+            draw_board(screen)
+            print_last_move(screen, board)
+            print_pieces(screen, board, dragger)
+            game.turn_made()
 
         if dragger.dragging:
             dragger.update_blit(screen)
@@ -49,6 +68,13 @@ def main():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 dragger.update_mouse(event.pos)
                 game.check_game_mode_buttons(dragger, board, 350, 120)
+                if game.game_mode == 'pvp':
+                    ai_1.color = None
+                    ai_2.color = None
+                elif game.game_mode == 'ava' or 'pva':
+                    ai_1.color = 'black'
+                elif game.game_mode == 'ava':
+                    ai_2.color = 'white'
 
                 if 560 < dragger.mouseX < 1360 and 140 < dragger.mouseY < 940:
                     clicked_file = int((dragger.mouseX - (screen_x // 2 - 4 * square_size)) // square_size)
