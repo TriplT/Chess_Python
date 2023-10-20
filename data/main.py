@@ -7,7 +7,6 @@ from print_pieces import print_pieces
 from move_preview_circle_display import move_preview_circle_display
 from print_last_move import print_last_move
 from print_current_move import print_current_move
-from gamemode_buttons import *
 from classes.dragger import *
 from classes.board import *
 from classes.square import *
@@ -15,6 +14,7 @@ from classes.piece import *
 from classes.game import *
 from classes.move import *
 from classes.sound import *
+from classes.AI import *
 
 
 pygame.init()
@@ -33,6 +33,7 @@ def main():
     dragger = Dragger()
     board = Board()
     game = Game('pvp', 'white')
+    ai = AI(0, 0, 1, board, 'white')
 
     while True:
         screen.fill((0, 0, 0))
@@ -60,7 +61,7 @@ def main():
 
                         if board.valid_current_move(move):
                             captured = board.squares[clicked_rank][clicked_file].occupied()
-                            board.move(board.squares[dragger.initial_rank][dragger.initial_file].piece, move, game)
+                            board.move(board.squares[dragger.initial_rank][dragger.initial_file].piece, move, True, game)
                             Sound().play(captured)
                             board.calc_current_moves()
                             screen.fill((0, 0, 0))
@@ -94,7 +95,7 @@ def main():
 
                     if board.valid_move(dragger.piece, move):
                         captured = board.squares[released_rank][released_file].occupied()
-                        board.move(dragger.piece, move, game)
+                        board.move(dragger.piece, move, True, game)
                         Sound().play(captured)
                         board.calc_current_moves()
                         screen.fill((0, 0, 0))

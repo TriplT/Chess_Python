@@ -38,14 +38,18 @@ class Board:
         if not piece:
             self.current_moves = []
 
-    def move(self, piece, move, game):
+    def move(self, piece, move, player=True, game=None):
 
         self.squares[move.initial_square.rank][move.initial_square.file].piece = None
         self.squares[move.final_square.rank][move.final_square.file].piece = piece
 
         if isinstance(piece, Pawn):
             self.en_passant(piece, move, self.last_move)
-            self.pawn_promotion(screen, piece, move.final_square, game)
+            if player:
+                self.pawn_promotion(screen, piece, move.final_square, game)
+            else:
+                pass
+            # AI code für pawn promotion dürftig
 
         if isinstance(piece, King):
             if self.castling(move.initial_square, move.final_square):
@@ -409,4 +413,10 @@ class Board:
 
         self.squares[rank_piece][3] = Square(rank_piece, 3, Queen(color))
 
+    def save_pieces(self, color):
+        lst = []
+        for rank in range(ranks):
+            for file in range(files):
+                if self.squares[rank][file].occupied_by_teammate(color):
+                    lst.append((rank, file))
 
