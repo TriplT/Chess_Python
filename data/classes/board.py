@@ -20,6 +20,8 @@ class Board:
     def __init__(self):
         self.squares = [[0, 0, 0, 0, 0, 0, 0, 0] for rank in range(ranks)]
         self.move_played = False
+        self.move_counter = 0  # 50 move-rule
+        self.last_num_of_pieces = 0  # 50 move-rule
         self.last_move = None
         self.last_white_move = None
         self.last_black_move = None
@@ -31,6 +33,7 @@ class Board:
         self.create_squares()
         self.add_startposition('white')
         self.add_startposition('black')
+        self.save_number_of_pieces()
 
     def create_squares(self):
         for rank in range(ranks):
@@ -67,6 +70,7 @@ class Board:
         piece.moved = True
         piece.clear_moves()
         self.current_moves = []
+        self.move_counter += 1
 
         self.last_piece = piece
         self.last_move = move
@@ -92,14 +96,16 @@ class Board:
         else:
             print('unexpected error, piece.color not white or black')
 
-
-
-
-    def valid_move(self, piece, move):
+    @staticmethod
+    def valid_move(piece, move):
         return move in piece.moves
 
     def valid_current_move(self, move):
         return move in self.current_moves
+
+    @staticmethod
+    def castling(initial, final):
+        return abs(initial.file - final.file) == 2
 
     def pawn_promotion(self, screen, piece, last, game):
         if isinstance(piece, Pawn) and (last.rank == 0 or last.rank == 7):
@@ -147,9 +153,6 @@ class Board:
                                 screen_y / 2 + 95):
                             self.squares[last.rank][last.file].piece = Knight(piece.color)
                             return
-
-    def castling(self, initial, final):
-        return abs(initial.file - final.file) == 2
 
     def en_passant(self, piece, move, last_move):
         if piece.en_passant and move.final_square.file == last_move.final_square.file:
@@ -472,12 +475,20 @@ class Board:
             if knight_counter == 2 or (bishop_counter == 1 and knight_counter == 1):
                 insufficient_material = True
 
+        # 50 move-rule
+        if len(piece_list) != self.last_num_of_pieces:
+            self.last_num_of_pieces = len(piece_list)
+            self.move_counter = 0
+
         if insufficient_material:
             self.game_ended = True
             self.win_message = 'insufficient material'
-        elif self.repetition_counter == 6:
+        elif self.repetition_counter == 4:
             self.game_ended = True
             self.win_message = 'repetition'
+        elif self.move_counter == 50:
+            self.game_ended = True
+            self.win_message = '50 move-rule'
         elif stalemate and checkmate:
             self.game_ended = True
             self.win_message = 'checkmate'
@@ -486,9 +497,6 @@ class Board:
             self.win_message = 'stalemate'
 
         self.move_played = False
-        # repetition
-        # 50 move-rule
-        # insufficient material
 
     def reset_board(self):
         for rank in range(ranks):
@@ -500,20 +508,7 @@ class Board:
         self.win_message = False
         self.game_ended = False
 
-
     def add_startposition(self, color):
-        if color == 'white':
-            rank_pawn, rank_piece = (6, 4)
-        else:
-            rank_pawn, rank_piece = (1, 2)
-
-        self.squares[rank_piece][1] = Square(rank_piece, 1, Knight(color))
-        self.squares[rank_piece][6] = Square(rank_piece, 6, Bishop('white'))
-
-        self.squares[rank_piece][4] = Square(rank_piece, 4, King(color))
-
-
-    def add_startpositio(self, color):
         if color == 'white':
             rank_pawn, rank_piece = (6, 7)
         else:
@@ -535,7 +530,7 @@ class Board:
 
         self.squares[rank_piece][3] = Square(rank_piece, 3, Queen(color))
 
-    def save_pieces(self, color):
+    def save_own_pieces(self, color):
         lst = []
         for rank in range(ranks):
             for file in range(files):
@@ -550,10 +545,19 @@ class Board:
                 lst.append(self.squares[rank][file].piece)
         return lst
 
+    def save_number_of_pieces(self):
+        counter = 0
+        for rank in range(ranks):
+            for file in range(files):
+                if self.squares[rank][file].piece:
+                    counter += 1
+        self.last_num_of_pieces = counter
     # functions for debugging:
 
     '''
-        def add_startposition_check_stale_and_checkmate(self, color):
+        def add_startposition(self, color):
+        # check_stale_and_checkmate
+        
         if color == 'white':
             rank_pawn, rank_piece = (6, 7)
         else:
@@ -570,7 +574,9 @@ class Board:
         self.squares[rank_piece][6] = Square(rank_piece, 5, Bishop('white'))
         self.squares[rank_piece][4] = Square(rank_piece, 4, King(color))
         
-            def add_startposition(self, color):
+        
+        def add_startposition(self, color):
+        check insufficient material
         if color == 'white':
             rank_pawn, rank_piece = (6, 7)
         else:
@@ -582,6 +588,19 @@ class Board:
             self.squares[6][3] = Square(rank_piece, 1, Knight('black'))
             self.squares[rank_piece][1] = Square(rank_piece, 1, Bishop('black'))
             self.squares[rank_piece][6] = Square(rank_piece, 1, Knight('white'))
+        
+        
+        def add_startposition(self, color):
+        # check repetition and 50 move-rule
+        if color == 'white':
+            rank_pawn, rank_piece = (6, 4)
+        else:
+            rank_pawn, rank_piece = (1, 2)
+
+        self.squares[rank_piece][1] = Square(rank_piece, 1, Knight(color))
+        self.squares[rank_piece][6] = Square(rank_piece, 6, Bishop('white'))
+
+        self.squares[rank_piece][4] = Square(rank_piece, 4, King(color))
         
     
     

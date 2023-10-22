@@ -128,7 +128,7 @@ def main():
         if game.player == ai_1.color:
             # sound?
             if not board.game_ended:
-                ai_1.pieces = board.save_pieces(ai_1.color)
+                ai_1.pieces = board.save_own_pieces(ai_1.color)
                 ai_1.play_random(board)
                 screen.fill((0, 0, 0))
                 draw_board(screen)
@@ -138,7 +138,7 @@ def main():
 
         if game.player == ai_2.color:
             if not board.game_ended:
-                ai_2.pieces = board.save_pieces(ai_2.color)
+                ai_2.pieces = board.save_own_pieces(ai_2.color)
                 ai_2.play_random(board)
                 screen.fill((0, 0, 0))
                 draw_board(screen)
