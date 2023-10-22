@@ -21,6 +21,9 @@ class Board:
         self.squares = [[0, 0, 0, 0, 0, 0, 0, 0] for rank in range(ranks)]
         self.move_played = False
         self.last_move = None
+        self.last_white_move = None
+        self.last_black_move = None
+        self.repetition_counter = 0
         self.last_piece = None
         self.win_message = False
         self.game_ended = False
@@ -65,8 +68,32 @@ class Board:
         piece.clear_moves()
         self.current_moves = []
 
-        self.last_move = move
         self.last_piece = piece
+        self.last_move = move
+
+        # move repetition
+        if piece.color == 'white':
+            if (self.last_black_move and move.initial_square == self.last_white_move.final_square
+                    and move.final_square == self.last_white_move.initial_square):
+                self.repetition_counter += 1
+            else:
+                self.repetition_counter = 0
+
+            self.last_white_move = move
+
+        elif piece.color == 'black':
+            if (self.last_black_move and move.initial_square == self.last_black_move.final_square
+                    and move.final_square == self.last_black_move.initial_square):
+                self.repetition_counter += 1
+            else:
+                self.repetition_counter = 0
+
+            self.last_black_move = move
+        else:
+            print('unexpected error, piece.color not white or black')
+
+
+
 
     def valid_move(self, piece, move):
         return move in piece.moves
@@ -129,14 +156,11 @@ class Board:
             self.squares[last_move.final_square.rank][last_move.final_square.file].piece = None
             piece.en_passant = False
 
-    def move_check_simulation(self, piece, move):
+    def in_check(self, piece, move):
+        final_pos_piece = self.squares[move.final_square.rank][move.final_square.file].piece
 
         self.squares[move.initial_square.rank][move.initial_square.file].piece = None
         self.squares[move.final_square.rank][move.final_square.file].piece = piece
-
-    def in_check(self, piece, move):
-        final_pos_piece = self.squares[move.final_square.rank][move.final_square.file].piece
-        self.move_check_simulation(piece, move)
 
         for rank in range(ranks):
             for file in range(files):
@@ -145,7 +169,7 @@ class Board:
                     self.calculate_valid_moves(p, rank, file, bool=False)
 
                     for m in p.moves:
-                        if isinstance(m.final_square.piece, King):
+                        if isinstance(self.squares[m.final_square.rank][m.final_square.file].piece, King):
                             self.squares[move.initial_square.rank][move.initial_square.file].piece = piece
                             self.squares[move.final_square.rank][move.final_square.file].piece = final_pos_piece
                             p.moves = []
@@ -307,6 +331,7 @@ class Board:
                         move = Move(initial, final)
                         if bool:
                             if not self.in_check(piece, move):
+
                                 piece.add_move(move)
                         else:
                             piece.add_move(move)
@@ -450,6 +475,9 @@ class Board:
         if insufficient_material:
             self.game_ended = True
             self.win_message = 'insufficient material'
+        elif self.repetition_counter == 6:
+            self.game_ended = True
+            self.win_message = 'repetition'
         elif stalemate and checkmate:
             self.game_ended = True
             self.win_message = 'checkmate'
@@ -475,12 +503,12 @@ class Board:
 
     def add_startposition(self, color):
         if color == 'white':
-            rank_pawn, rank_piece = (6, 7)
+            rank_pawn, rank_piece = (6, 4)
         else:
-            rank_pawn, rank_piece = (1, 0)
+            rank_pawn, rank_piece = (1, 2)
 
         self.squares[rank_piece][1] = Square(rank_piece, 1, Knight(color))
-        self.squares[rank_piece][6] = Square(rank_piece, 6, Knight(color))
+        self.squares[rank_piece][6] = Square(rank_piece, 6, Bishop('white'))
 
         self.squares[rank_piece][4] = Square(rank_piece, 4, King(color))
 

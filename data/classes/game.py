@@ -83,7 +83,7 @@ class Game:
                 personal_message = 'you lost'
             if self.player == 'black':
                 personal_message = 'you won'
-        elif message == 'stalemate' or message == 'insufficient material':
+        elif message == 'stalemate' or message == 'insufficient material' or message == 'repetition':
             personal_message = 'draw'
 
         text_2 = font_2.render(personal_message, True, color_light_green)
