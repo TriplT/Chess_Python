@@ -47,24 +47,67 @@ class Board:
         if not piece:
             self.current_moves = []
 
-    def move(self, piece, move, player=True, game=None):
+    def player_move(self, piece, move, game):
 
         self.squares[move.initial_square.rank][move.initial_square.file].piece = None
         self.squares[move.final_square.rank][move.final_square.file].piece = piece
 
         if isinstance(piece, Pawn):
             self.en_passant(piece, move, self.last_move)
-            if player:
-                self.pawn_promotion(screen, piece, move.final_square, game)
-            else:
-                pass
-            # AI code für pawn promotion dürftig
+            self.player_pawn_promotion(screen, piece, move.final_square, game)
+
 
         if isinstance(piece, King):
             if self.castling(move.initial_square, move.final_square):
                 diff = move.final_square.file - move.initial_square.file
                 rook = piece.left_rook if (diff < 0) else piece.right_rook
-                self.move(rook, rook.moves[-1])
+                self.player_move(rook, rook.moves[-1])
+
+        self.move_played = True
+        piece.moved = True
+        piece.clear_moves()
+        self.current_moves = []
+        self.move_counter += 1
+
+        self.last_piece = piece
+        self.last_move = move
+
+        # move repetition
+        if piece.color == 'white':
+            if (self.last_black_move and move.initial_square == self.last_white_move.final_square
+                    and move.final_square == self.last_white_move.initial_square):
+                self.repetition_counter += 1
+            else:
+                self.repetition_counter = 0
+
+            self.last_white_move = move
+
+        elif piece.color == 'black':
+            if (self.last_black_move and move.initial_square == self.last_black_move.final_square
+                    and move.final_square == self.last_black_move.initial_square):
+                self.repetition_counter += 1
+            else:
+                self.repetition_counter = 0
+
+            self.last_black_move = move
+        else:
+            print('unexpected error, piece.color not white or black')
+
+    def ai_move(self, piece, move, promotion_piece=None):
+
+        self.squares[move.initial_square.rank][move.initial_square.file].piece = None
+        self.squares[move.final_square.rank][move.final_square.file].piece = piece
+
+        if isinstance(piece, Pawn):
+            self.en_passant(piece, move, self.last_move)
+            self.ai_pawn_promotion(piece, move.final_square, promotion_piece)
+
+        if isinstance(piece, King):
+            if self.castling(move.initial_square, move.final_square):
+                print('castling')
+                diff = move.final_square.file - move.initial_square.file
+                rook = piece.left_rook if (diff < 0) else piece.right_rook
+                self.ai_move(rook, rook.moves[-1])
 
         self.move_played = True
         piece.moved = True
@@ -107,7 +150,11 @@ class Board:
     def castling(initial, final):
         return abs(initial.file - final.file) == 2
 
-    def pawn_promotion(self, screen, piece, last, game):
+    def ai_pawn_promotion(self, piece, last, promotion_piece):
+        if isinstance(piece, Pawn) and (last.rank == 0 or last.rank == 7):
+            self.squares[last.rank][last.file].piece = promotion_piece(piece.color)
+
+    def player_pawn_promotion(self, screen, piece, last, game):
         if isinstance(piece, Pawn) and (last.rank == 0 or last.rank == 7):
             # create border
             color = (255, 255, 255)

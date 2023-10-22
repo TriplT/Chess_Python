@@ -72,7 +72,7 @@ def main():
 
                             if board.valid_current_move(move):
                                 captured = board.squares[clicked_rank][clicked_file].occupied()
-                                board.move(board.squares[dragger.initial_rank][dragger.initial_file].piece, move, True, game)
+                                board.player_move(board.squares[dragger.initial_rank][dragger.initial_file].piece, move, game)
                                 Sound().play(captured)
                                 board.calc_current_moves()
                                 screen.fill((0, 0, 0))
@@ -106,7 +106,7 @@ def main():
 
                     if board.valid_move(dragger.piece, move):
                         captured = board.squares[released_rank][released_file].occupied()
-                        board.move(dragger.piece, move, True, game)
+                        board.player_move(dragger.piece, move, game)
                         Sound().play(captured)
                         board.calc_current_moves()
                         screen.fill((0, 0, 0))
