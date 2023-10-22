@@ -20,7 +20,8 @@ class AI:
                 board.calculate_valid_moves(piece, rank, file, bool=True)
                 if piece.moves:
                     move = random.choice(piece.moves)
-                    board.move(piece, move)
+                    if board.valid_move(piece, move):
+                        board.move(piece, move)
                     return
                 else:
                     self.pieces.remove((rank, file))

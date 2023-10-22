@@ -7,6 +7,7 @@ class Game:
     def __init__(self, game_mode='pvp', player='white'):
         self.game_mode = game_mode
         self.player = player
+        self.message = False
 
     def turn_made(self):
         if self.player == 'white':
@@ -64,42 +65,35 @@ class Game:
         screen.blit(middle_text, middle_text_rect)
         screen.blit(bottom_text, bottom_text_rect)
 
-    @ staticmethod
-    def game_end_display(screen, message, width, height):
+    def game_end_display(self, screen, message, width, height):
 
         color_dark_green = (118, 150, 86)
         color_light_green = (238, 238, 210)
 
-        font = pygame.font.SysFont('times new roman', 50)
+        font_1 = pygame.font.SysFont('times new roman', 50)
+        font_2 = pygame.font.SysFont('times new roman', 30)
 
-        '''
-        checkmate_text = font.render('checkmate', True, color_light_green)
-        stalemate_text = font.render('stalemate', True, color_light_green)
-        repetition_text = font.render('repetition', True, color_light_green)
-        fifty_move_rule_text = font.render('50 move-rule', True, color_light_green)
-        insufficient_material_text = font.render('insufficient material', True, color_light_green)
+        text = font_1.render(message, True, color_light_green)
+        text_rect = text.get_rect(center=(screen_x / 2, int(screen_y / 2 - height / 10)))
 
-        win_text = font.render('you won', True, color_light_green)
-        draw_text = font.render('draw', True, color_light_green)
-        loss_text = font.render('you lost', True, color_light_green)
+        print(message)
+        personal_message = 'error'
+        if message == 'checkmate':
+            if self.player == 'white':
+                personal_message = 'you lost'
+            if self.player == 'black':
+                personal_message = 'you won'
+        elif message == 'stalemate' or message == 'insufficient material':
+            personal_message = 'draw'
 
-        checkmate_text_rect = checkmate_text.get_rect(center=(screen_x / 2, screen_y / 2 - height / 5))
-        stalemate_text_rect = stalemate_text.get_rect(center=(screen_x / 2, screen_y / 2 - height / 5))
-        repetition_text_rect = repetition_text.get_rect(center=(screen_x / 2, screen_y / 2 - height / 5))
-        fifty_move_rule_text_rect = fifty_move_rule_text.get_rect(center=(screen_x / 2, screen_y / 2 - height / 5))
-        insufficient_rect = insufficient_material_text.get_rect(center=(screen_x / 2, screen_y / 2 - height / 5))
+        text_2 = font_2.render(personal_message, True, color_light_green)
+        text_2_rect = text_2.get_rect(center=(screen_x / 2, int(screen_y / 2 + height / 5)))
 
-        win_text_rect = win_text.get_rect(center=(screen_x / 2, screen_y / 2 - height / 5))
-        draw_text_rect = draw_text.get_rect(center=(screen_x / 2, screen_y / 2 - height / 5))
-        loss_text_rect = loss_text.get_rect(center=(screen_x / 2, screen_y / 2 - height / 5))
-        '''
+        pygame.draw.rect(screen, color_dark_green, pygame.Rect(screen_x / 2 - (width / 2), screen_y / 2 - (height / 2), width, height))
 
-        pygame.draw.rect(screen, color_dark_green,
-                         (int(screen_x / 2 - (width / 2)), int(screen_y / - (height / 2)), width, height))
-
-        text = font.render(message, True, color_light_green)
-        text_rect = text.get_rect(center=(screen_x / 2, int(screen_y / 2 - height / 5)))
         screen.blit(text, text_rect)
+        screen.blit(text_2, text_2_rect)
+
 
 
 

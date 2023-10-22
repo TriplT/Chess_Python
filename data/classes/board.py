@@ -19,8 +19,11 @@ class Board:
 
     def __init__(self):
         self.squares = [[0, 0, 0, 0, 0, 0, 0, 0] for rank in range(ranks)]
+        self.move_played = False
         self.last_move = None
         self.last_piece = None
+        self.win_message = False
+        self.game_ended = False
         self.current_moves = []
         self.create_squares()
         self.add_startposition('white')
@@ -57,6 +60,7 @@ class Board:
                 rook = piece.left_rook if (diff < 0) else piece.right_rook
                 self.move(rook, rook.moves[-1])
 
+        self.move_played = True
         piece.moved = True
         piece.clear_moves()
         self.current_moves = []
@@ -183,7 +187,7 @@ class Board:
 
             # diagonal moves
             possible_move_rank = rank + piece.direction
-            possible_move_files = [file-1, file+1]
+            possible_move_files = [file - 1, file + 1]
 
             for possible_move_file in possible_move_files:
                 if Square.in_range(possible_move_rank, possible_move_file):
@@ -243,7 +247,8 @@ class Board:
                         if bool:
                             if not self.in_check(piece, move):
                                 piece.add_move(move)
-                            else: break
+                            else:
+                                break
                         else:
                             piece.add_move(move)
 
@@ -274,21 +279,22 @@ class Board:
                             break
                         elif self.squares[possible_move_rank][possible_move_file].occupied_by_teammate(piece.color):
                             break
-                    else: break
+                    else:
+                        break
 
                     possible_move_rank = possible_move_rank + rank_inc
                     possible_move_file = possible_move_file + file_inc
 
         def king_moves():
             moves = [
-                (rank-1, file-1),
-                (rank-1, file+0),
-                (rank-1, file+1),
-                (rank+1, file-1),
-                (rank+1, file+0),
-                (rank+1, file+1),
-                (rank+0, file-1),
-                (rank+0, file+1),
+                (rank - 1, file - 1),
+                (rank - 1, file + 0),
+                (rank - 1, file + 1),
+                (rank + 1, file - 1),
+                (rank + 1, file + 0),
+                (rank + 1, file + 1),
+                (rank + 0, file - 1),
+                (rank + 0, file + 1),
             ]
 
             for move in moves:
@@ -361,9 +367,12 @@ class Board:
                                     right_rook.add_move(move_rook)
                                     piece.add_move(move_king)
 
-        if isinstance(piece, Pawn): pawn_moves()
-        elif isinstance(piece, King): king_moves()
-        elif isinstance(piece, Queen): strait_line_moves([
+        if isinstance(piece, Pawn):
+            pawn_moves()
+        elif isinstance(piece, King):
+            king_moves()
+        elif isinstance(piece, Queen):
+            strait_line_moves([
                 (-1, 1),
                 (-1, -1),
                 (1, -1),
@@ -373,53 +382,85 @@ class Board:
                 (0, -1),
                 (1, 0)
             ])
-        elif isinstance(piece, Bishop): strait_line_moves([
-            (-1, 1),
-            (-1, -1),
-            (1, -1),
-            (1, 1)
-        ])
-        elif isinstance(piece, Knight): knight_moves()
-        elif isinstance(piece, Rook): strait_line_moves([
-            (-1, 0),
-            (0, 1),
-            (0, -1),
-            (1, 0)])
+        elif isinstance(piece, Bishop):
+            strait_line_moves([
+                (-1, 1),
+                (-1, -1),
+                (1, -1),
+                (1, 1)
+            ])
+        elif isinstance(piece, Knight):
+            knight_moves()
+        elif isinstance(piece, Rook):
+            strait_line_moves([
+                (-1, 0),
+                (0, 1),
+                (0, -1),
+                (1, 0)])
 
     def game_end(self, game):
-        # checkmate or stalemate
-        check = False
-        no_stalemate = False
+        # stalemate
+        checkmate = False
+        stalemate = True
+        piece_list = []
+        insufficient_material = False
+
         for rank in range(ranks):
             for file in range(files):
-                # checkmate
-                if self.squares[rank][file].occupied_by_opponent(game.player):
-                    p = self.squares[rank][file].piece
-                    self.calculate_valid_moves(p, rank, file, bool=False)
 
-                    for m in p.moves:
-                        if isinstance(m.final_square.piece, King):
-                            p.moves = []
-                            check = True
-                    p.moves = []
-                # stalemate
+                p = self.squares[rank][file].piece
+                if self.squares[rank][file].occupied():
+                    piece_list.append(p)
+
+                # checkmate and stalemate
                 if self.squares[rank][file].occupied_by_teammate(game.player):
-                    p = self.squares[rank][file].piece
-                    if p:
-                        self.calculate_valid_moves(p, rank, file, bool=False)
-                        if p.moves:
-                            p.moves = []
-                            no_stalemate = True
-        if not no_stalemate and check:
-            return 'checkmate'
+                    self.calculate_valid_moves(p, rank, file, bool=True)
+                    if p.moves:
+                        stalemate = False
+                    p.moves = []
+                if self.squares[rank][file].occupied_by_opponent(game.player):
+                    self.calculate_valid_moves(p, rank, file, bool=True)
+                    for move in p.moves:
+                        if isinstance(move.final_square.piece, King):
+                            checkmate = True
+                    p.moves = []
 
-        if not no_stalemate:
-            return 'stalemate'
+        # insufficient material
+        knight_counter = 0
+        bishop_counter = 0
+        # king vs king
+        if len(piece_list) == 2:
+            insufficient_material = True
+        elif len(piece_list) == 3:
+            for piece in piece_list:
+                if isinstance(piece, Bishop) or isinstance(piece, Knight):
+                    insufficient_material = True
+        elif len(piece_list) == 4:
+            for piece in piece_list:
+                if isinstance(piece, Knight):
+                    knight_counter += 1
+                elif isinstance(piece, Bishop):
+                    bishop_counter += 1
+                    color = piece.color
+                    if bishop_counter == 2 and not color == piece.color:
+                        insufficient_material = True
+            if knight_counter == 2 or (bishop_counter == 1 and knight_counter == 1):
+                insufficient_material = True
 
+        if insufficient_material:
+            self.game_ended = True
+            self.win_message = 'insufficient material'
+        elif stalemate and checkmate:
+            self.game_ended = True
+            self.win_message = 'checkmate'
+        elif stalemate:
+            self.game_ended = True
+            self.win_message = 'stalemate'
+
+        self.move_played = False
         # repetition
         # 50 move-rule
         # insufficient material
-        return False
 
     def reset_board(self):
         for rank in range(ranks):
@@ -427,8 +468,24 @@ class Board:
                 self.squares[rank][file].piece = None
         self.current_moves = []
         self.last_move = None
+        self.move_played = False
+        self.win_message = False
+        self.game_ended = False
+
 
     def add_startposition(self, color):
+        if color == 'white':
+            rank_pawn, rank_piece = (6, 7)
+        else:
+            rank_pawn, rank_piece = (1, 0)
+
+        self.squares[rank_piece][1] = Square(rank_piece, 1, Knight(color))
+        self.squares[rank_piece][6] = Square(rank_piece, 6, Knight(color))
+
+        self.squares[rank_piece][4] = Square(rank_piece, 4, King(color))
+
+
+    def add_startpositio(self, color):
         if color == 'white':
             rank_pawn, rank_piece = (6, 7)
         else:
@@ -458,3 +515,46 @@ class Board:
                     lst.append((rank, file))
         return lst
 
+    def save_all_pieces(self):
+        lst = []
+        for rank in range(ranks):
+            for file in range(files):
+                lst.append(self.squares[rank][file].piece)
+        return lst
+
+    # functions for debugging:
+
+    '''
+        def add_startposition_check_stale_and_checkmate(self, color):
+        if color == 'white':
+            rank_pawn, rank_piece = (6, 7)
+        else:
+            rank_pawn, rank_piece = (1, 0)
+
+        self.squares[rank_piece][0] = Square(rank_piece, 2, Pawn(color))
+
+        self.squares[rank_piece][2] = Square(rank_piece, 2, Bishop('white'))
+        self.squares[rank_piece][5] = Square(rank_piece, 5, Bishop('white'))
+        self.squares[3][0] = Square(rank_piece, 2, Bishop('white'))
+        self.squares[2][7] = Square(rank_piece, 2, Bishop('white'))
+
+        self.squares[rank_piece][3] = Square(rank_piece, 2, Bishop('white'))
+        self.squares[rank_piece][6] = Square(rank_piece, 5, Bishop('white'))
+        self.squares[rank_piece][4] = Square(rank_piece, 4, King(color))
+        
+            def add_startposition(self, color):
+        if color == 'white':
+            rank_pawn, rank_piece = (6, 7)
+        else:
+            rank_pawn, rank_piece = (1, 0)
+
+        self.squares[rank_piece][4] = Square(rank_piece, 4, King(color))
+
+        if color == 'black':
+            self.squares[6][3] = Square(rank_piece, 1, Knight('black'))
+            self.squares[rank_piece][1] = Square(rank_piece, 1, Bishop('black'))
+            self.squares[rank_piece][6] = Square(rank_piece, 1, Knight('white'))
+        
+    
+    
+    '''

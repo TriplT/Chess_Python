@@ -43,32 +43,6 @@ def main():
         print_current_move(screen, dragger)
         print_pieces(screen, board, dragger)
 
-        '''
-        message = board.game_end(game)
-        print(message)
-        if message:
-            game.game_end_display(screen, message, 350, 120)
-        '''
-
-        if game.player == ai_1.color:
-            # sound?
-            ai_1.pieces = board.save_pieces(ai_1.color)
-            ai_1.play_random(board)
-            screen.fill((0, 0, 0))
-            draw_board(screen)
-            print_last_move(screen, board)
-            print_pieces(screen, board, dragger)
-            game.turn_made()
-
-        if game.player == ai_2.color:
-            ai_2.pieces = board.save_pieces(ai_2.color)
-            ai_2.play_random(board)
-            screen.fill((0, 0, 0))
-            draw_board(screen)
-            print_last_move(screen, board)
-            print_pieces(screen, board, dragger)
-            game.turn_made()
-
         if dragger.dragging:
             dragger.update_blit(screen)
             dragger.piece_clicked()
@@ -89,21 +63,23 @@ def main():
                     clicked_file = int((dragger.mouseX - (screen_x // 2 - 4 * square_size)) // square_size)
                     clicked_rank = int((dragger.mouseY - (screen_y // 2 - 4 * square_size)) // square_size)
 
-                    if board.squares[clicked_rank][clicked_file].no_friendly_fire(game.player) and dragger.clicked:
-                        initial = Square(dragger.initial_rank, dragger.initial_file)
-                        final = Square(clicked_rank, clicked_file)
-                        move = Move(initial, final)
+                    if not board.game_ended:
 
-                        if board.valid_current_move(move):
-                            captured = board.squares[clicked_rank][clicked_file].occupied()
-                            board.move(board.squares[dragger.initial_rank][dragger.initial_file].piece, move, True, game)
-                            Sound().play(captured)
-                            board.calc_current_moves()
-                            screen.fill((0, 0, 0))
-                            draw_board(screen)
-                            print_last_move(screen, board)
-                            print_pieces(screen, board, dragger)
-                            game.turn_made()
+                        if board.squares[clicked_rank][clicked_file].no_friendly_fire(game.player) and dragger.clicked:
+                            initial = Square(dragger.initial_rank, dragger.initial_file)
+                            final = Square(clicked_rank, clicked_file)
+                            move = Move(initial, final)
+
+                            if board.valid_current_move(move):
+                                captured = board.squares[clicked_rank][clicked_file].occupied()
+                                board.move(board.squares[dragger.initial_rank][dragger.initial_file].piece, move, True, game)
+                                Sound().play(captured)
+                                board.calc_current_moves()
+                                screen.fill((0, 0, 0))
+                                draw_board(screen)
+                                print_last_move(screen, board)
+                                print_pieces(screen, board, dragger)
+                                game.turn_made()
 
                     if board.squares[clicked_rank][clicked_file].occupied():
                         piece = board.squares[clicked_rank][clicked_file].piece
@@ -143,6 +119,32 @@ def main():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
+
+        if board.move_played:
+            board.game_end(game)
+        if board.win_message:
+            game.game_end_display(screen, board.win_message, 450, 130)
+
+        if game.player == ai_1.color:
+            # sound?
+            if not board.game_ended:
+                ai_1.pieces = board.save_pieces(ai_1.color)
+                ai_1.play_random(board)
+                screen.fill((0, 0, 0))
+                draw_board(screen)
+                print_last_move(screen, board)
+                print_pieces(screen, board, dragger)
+                game.turn_made()
+
+        if game.player == ai_2.color:
+            if not board.game_ended:
+                ai_2.pieces = board.save_pieces(ai_2.color)
+                ai_2.play_random(board)
+                screen.fill((0, 0, 0))
+                draw_board(screen)
+                print_last_move(screen, board)
+                print_pieces(screen, board, dragger)
+                game.turn_made()
 
         move_preview_circle_display(screen, dragger, board)
         game.draw_game_mode_buttons(screen, 350, 120)
