@@ -593,7 +593,7 @@ class Board:
         for rank in range(ranks):
             for file in range(files):
                 if self.squares[rank][file].occupied_by_teammate(color):
-                    lst.append((rank, file))
+                    lst.append(self.squares[rank][file])
         return lst
 
     def save_all_pieces(self):

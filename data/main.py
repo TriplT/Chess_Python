@@ -33,8 +33,8 @@ def main():
     dragger = Dragger()
     board = Board()
     game = Game('pvp', 'white')
-    ai_1 = AI(0, 1, None)
-    ai_2 = AI(0, 1, None)
+    ai_1 = AI('random', 0, 1, None)
+    ai_2 = AI('random', 0, 1, None)
 
     while True:
         screen.fill((0, 0, 0))
@@ -120,31 +120,16 @@ def main():
                 pygame.quit()
                 exit()
 
+        if game.ai_turn(board, ai_1) or game.ai_turn(board, ai_2):
+            screen.fill((0, 0, 0))
+            draw_board(screen)
+            print_last_move(screen, board)
+            print_pieces(screen, board, dragger)
+
         if board.move_played:
             board.game_end(game)
         if board.win_message:
             game.game_end_display(screen, board.win_message, 450, 130)
-
-        if game.player == ai_1.color:
-            # sound?
-            if not board.game_ended:
-                ai_1.pieces = board.save_own_pieces(ai_1.color)
-                ai_1.play_moves(board, 'random')
-                screen.fill((0, 0, 0))
-                draw_board(screen)
-                print_last_move(screen, board)
-                print_pieces(screen, board, dragger)
-                game.turn_made()
-
-        if game.player == ai_2.color:
-            if not board.game_ended:
-                ai_2.pieces = board.save_own_pieces(ai_2.color)
-                ai_2.play_moves(board, 'random')
-                screen.fill((0, 0, 0))
-                draw_board(screen)
-                print_last_move(screen, board)
-                print_pieces(screen, board, dragger)
-                game.turn_made()
 
         move_preview_circle_display(screen, dragger, board)
         game.draw_game_mode_buttons(screen, 350, 120)

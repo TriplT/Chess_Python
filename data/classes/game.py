@@ -15,6 +15,11 @@ class Game:
         else:
             self.player = 'white'
 
+    def ai_turn(self, board, ai):
+        if self.player == ai.color and not board.game_ended and not board.move_played:
+            ai.play_moves(board, ai.engine)
+            self.turn_made()
+
     def check_game_mode_buttons(self, dragger, board, width, height):
         middleX, middleY = screen_x / 20, screen_y / 2 - (height / 2)
         topX, topY = middleX, middleY - height - (height / 2)
@@ -79,9 +84,9 @@ class Game:
         personal_message = 'error'
         if message == 'checkmate':
             if self.player == 'white':
-                personal_message = 'you lost'
+                personal_message = 'white won'
             if self.player == 'black':
-                personal_message = 'you won'
+                personal_message = 'black won'
         elif message == 'stalemate' or message == 'insufficient material' \
                 or message == 'repetition' or message == '50 move-rule':
             personal_message = 'draw'
