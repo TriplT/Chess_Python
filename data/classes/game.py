@@ -8,6 +8,10 @@ class Game:
         self.game_mode = game_mode
         self.player = player
         self.message = False
+        self.game_run_through = 0
+        self.white_wins = 0
+        self.black_wins = 0
+        self.draws = 0
 
     def turn_made(self):
         if self.player == 'white':
@@ -20,55 +24,29 @@ class Game:
             ai.play_moves(board, ai.engine)
             self.turn_made()
 
-    def check_game_mode_buttons(self, dragger, board, width, height):
-        middleX, middleY = screen_x / 20, screen_y / 2 - (height / 2)
-        topX, topY = middleX, middleY - height - (height / 2)
-        bottomX, bottomY = middleX, middleY + height + (height / 2)
+    def game_end_100ava(self, board, message):
+        if self.game_run_through <= 100:
+            if message == 'checkmate':
+                if self.player == 'white':
+                    self.white_wins += 1
+                else:
+                    self.black_wins += 1
+            elif message == 'stalemate' or message == 'insufficient material' \
+                    or message == 'repetition' or message == '50 move-rule':
+                self.draws += 1
 
-        if topX < dragger.mouseX < (topX + width) and topY < dragger.mouseY < (topY + height):
-            board.reset_board()
-            board.add_startposition('white')
-            board.add_startposition('black')
-            self.game_mode = 'pvp'
-            self.player = 'white'
-        elif middleX < dragger.mouseX < (middleX + width) and middleY < dragger.mouseY < (middleY + height):
-            board.reset_board()
-            board.add_startposition('white')
-            board.add_startposition('black')
-            self.game_mode = 'pva'
-            self.player = 'white'
-        elif bottomX < dragger.mouseX < (bottomX + width) and bottomY < dragger.mouseY < (bottomY + height):
-            board.reset_board()
-            board.add_startposition('white')
-            board.add_startposition('black')
-            self.game_mode = 'ava'
-            self.player = 'white'
-
-    @staticmethod
-    def draw_game_mode_buttons(screen, width, height):
-        middleX, middleY = screen_x / 20, screen_y / 2 - (height / 2)
-        topX, topY = middleX, middleY - height - (height / 2)
-        bottomX, bottomY = middleX, middleY + height + height / 2
-
-        font = pygame.font.SysFont('times new roman', 50)
-        color_dark_green = (118, 150, 86)
-        color_light_green = (238, 238, 210)
-
-        top_text = font.render('Player vs Player', True, color_light_green)
-        middle_text = font.render('Player vs AI', True, color_light_green)
-        bottom_text = font.render('AI vs AI', True, color_light_green)
-
-        top_text_rect = top_text.get_rect(center=(topX + (width / 2), topY + (height / 2)))
-        middle_text_rect = middle_text.get_rect(center=(middleX + (width / 2), middleY + (height / 2)))
-        bottom_text_rect = bottom_text.get_rect(center=(bottomX + (width / 2), bottomY + (height / 2)))
-
-        pygame.draw.rect(screen, color_dark_green, (topX, topY, width, height))
-        pygame.draw.rect(screen, color_dark_green, (middleX, middleY, width, height))
-        pygame.draw.rect(screen, color_dark_green, (bottomX, bottomY, width, height))
-
-        screen.blit(top_text, top_text_rect)
-        screen.blit(middle_text, middle_text_rect)
-        screen.blit(bottom_text, bottom_text_rect)
+            if self.game_run_through == 100:
+                print(f'white wins: {self.white_wins} draws: {self.draws} black wins: {self.black_wins}')
+                self.game_run_through += 1
+                self.white_wins = 0
+                self.black_wins = 0
+                self.draws = 0
+                return
+            else:
+                self.game_run_through += 1
+                board.reset_board()
+                board.add_startposition('white')
+                board.add_startposition('black')
 
     def game_end_display(self, screen, message, width, height):
 
@@ -98,6 +76,72 @@ class Game:
 
         screen.blit(text, text_rect)
         screen.blit(text_2, text_2_rect)
+
+    def check_game_mode_buttons(self, dragger, board, width, height):
+        x_coord = screen_x / 20
+        y_coord = screen_y / 2
+
+        if x_coord < dragger.mouseX < (x_coord + width) and y_coord - height - height - (height/4)\
+                < dragger.mouseY < (y_coord - height - height - (height/4) + height):
+            board.reset_board()
+            board.add_startposition('white')
+            board.add_startposition('black')
+            self.game_mode = 'pvp'
+            self.player = 'white'
+        elif x_coord < dragger.mouseX < (x_coord + width) and y_coord - height - (height / 4) \
+                < dragger.mouseY < (y_coord - height - (height / 4) + height):
+            board.reset_board()
+            board.add_startposition('white')
+            board.add_startposition('black')
+            self.game_mode = 'pva'
+            self.player = 'white'
+        elif x_coord < dragger.mouseX < (x_coord + width) and y_coord + (height / 4) \
+                < dragger.mouseY < (y_coord + (height / 4) + height):
+            board.reset_board()
+            board.add_startposition('white')
+            board.add_startposition('black')
+            self.game_mode = 'ava'
+            self.player = 'white'
+        elif x_coord < dragger.mouseX < (x_coord + width) and y_coord + height + (height * 3 / 4) \
+                < dragger.mouseY < (y_coord + height + (height * 3 / 4) + height):
+            board.reset_board()
+            board.add_startposition('white')
+            board.add_startposition('black')
+            self.game_mode = '100ava'
+            self.player = 'white'
+            self.game_run_through = 0
+
+    @staticmethod
+    def draw_game_mode_buttons(screen, width, height):
+        x_coord = screen_x / 20
+        middle_x_coord = screen_x / 20 + (width / 2)
+        y_coord = screen_y / 2
+
+        font = pygame.font.SysFont('times new roman', 50)
+        color_dark_green = (118, 150, 86)
+        color_light_green = (238, 238, 210)
+
+        top_text = font.render('Player vs Player', True, color_light_green)
+        middle_top_text = font.render('Player vs AI', True, color_light_green)
+        middle_bottom_text = font.render('AI vs AI', True, color_light_green)
+        bottom_text = font.render('100 AI vs AI', True, color_light_green)
+
+        top_text_rect = top_text.get_rect(center=(middle_x_coord, y_coord - height - height - (height/4)))
+        middle_top_text_rect = middle_top_text.get_rect(center=(middle_x_coord, y_coord - (height * 3 / 4)))
+        middle_bottom_text_rect = middle_bottom_text.get_rect(center=(middle_x_coord, y_coord + (height * 3 / 4)))
+        bottom_text_rect = bottom_text.get_rect(center=(middle_x_coord, y_coord + height + height + (height / 4)))
+
+        pygame.draw.rect(screen, color_dark_green, (x_coord, y_coord - height - height - (height * 3 / 4), width, height))
+        pygame.draw.rect(screen, color_dark_green, (x_coord, y_coord - height - (height / 4), width, height))
+        pygame.draw.rect(screen, color_dark_green, (x_coord, y_coord + (height / 4), width, height))
+        pygame.draw.rect(screen, color_dark_green, (x_coord, y_coord + height + (height * 3 / 4), width, height))
+
+        screen.blit(top_text, top_text_rect)
+        screen.blit(middle_top_text, middle_top_text_rect)
+        screen.blit(middle_bottom_text, middle_bottom_text_rect)
+        screen.blit(bottom_text, bottom_text_rect)
+
+
 
 
 

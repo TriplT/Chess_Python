@@ -55,7 +55,7 @@ def main():
                     ai_2.color = None
                 elif game.game_mode == 'pva':
                     ai_1.color = 'black'
-                elif game.game_mode == 'ava':
+                elif game.game_mode == 'ava' or '100ava':
                     ai_1.color = 'black'
                     ai_2.color = 'white'
 
@@ -129,7 +129,10 @@ def main():
         if board.move_played:
             board.game_end(game)
         if board.win_message:
-            game.game_end_display(screen, board.win_message, 450, 130)
+            if game.game_mode == '100ava':
+                game.game_end_100ava(board, board.win_message)
+            else:
+                game.game_end_display(screen, board.win_message, 450, 130)
 
         move_preview_circle_display(screen, dragger, board)
         game.draw_game_mode_buttons(screen, 350, 120)
