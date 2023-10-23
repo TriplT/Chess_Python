@@ -47,7 +47,7 @@ class Board:
         if not piece:
             self.current_moves = []
 
-    def player_move(self, piece, move, game):
+    def player_move(self, piece, move, game=None):
 
         self.squares[move.initial_square.rank][move.initial_square.file].piece = None
         self.squares[move.final_square.rank][move.final_square.file].piece = piece
@@ -55,7 +55,6 @@ class Board:
         if isinstance(piece, Pawn):
             self.en_passant(piece, move, self.last_move)
             self.player_pawn_promotion(screen, piece, move.final_square, game)
-
 
         if isinstance(piece, King):
             if self.castling(move.initial_square, move.final_square):
@@ -104,7 +103,6 @@ class Board:
 
         if isinstance(piece, King):
             if self.castling(move.initial_square, move.final_square):
-                print('castling')
                 diff = move.final_square.file - move.initial_square.file
                 rook = piece.left_rook if (diff < 0) else piece.right_rook
                 self.ai_move(rook, rook.moves[-1])
@@ -554,6 +552,19 @@ class Board:
         self.move_played = False
         self.win_message = False
         self.game_ended = False
+
+    def add_startpositio(self, color):
+        if color == 'white':
+            rank_pawn, rank_piece = (6, 7)
+        else:
+            rank_pawn, rank_piece = (1, 0)
+
+        self.squares[rank_piece][7] = Square(rank_piece, 7, King(color))
+
+        if color == 'white':
+            self.squares[1][0] = Square(1, 0, Pawn('white'))
+            self.squares[1][1] = Square(1, 1, Rook('white'))
+
 
     def add_startposition(self, color):
         if color == 'white':

@@ -15,26 +15,33 @@ class AI:
     def play_moves(self, board, engine='random'):
         # engines
         def play_random():
+            print('move random')
             if self.pieces:
                 while True:
                     if not self.pieces:
-                        for rank in range(ranks):
-                            for file in range(files):
-                                print(board.squares[rank][file].piece)
-                                if board.squares[rank][file].piece:
-                                    print(board.squares[rank][file].piece.color)
+                        print('no pieces left, error')
+                        print(self.color)
+                        while True:
+                            if self.difficulty == 8:
+                                return
+
                     print('reset')
                     rank, file = random.choice(self.pieces)
                     piece = board.squares[rank][file].piece
                     board.calculate_valid_moves(piece, rank, file, bool=True)
+                    print(piece, piece.color)
                     if piece.moves:
                         move = random.choice(piece.moves)
                         if board.valid_move(piece, move):
                             promotion_piece = random.choice(self.promotion_pieces)
                             board.ai_move(piece, move, promotion_piece)
-                        return
+                            return
+                        else:
+                            piece.moves.remove(move)
+                            print('move removed')
                     else:
                         self.pieces.remove((rank, file))
+                        print('piece removed')
             else:
                 print('no pieces available for the ai')
 
