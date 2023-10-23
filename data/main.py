@@ -33,8 +33,8 @@ def main():
     dragger = Dragger()
     board = Board()
     game = Game('pvp', 'white')
-    ai_1 = AI(0, 0, 1, None)
-    ai_2 = AI(0, 0, 1, None)
+    ai_1 = AI(0, 1, None)
+    ai_2 = AI(0, 1, None)
 
     while True:
         screen.fill((0, 0, 0))
@@ -129,7 +129,7 @@ def main():
             # sound?
             if not board.game_ended:
                 ai_1.pieces = board.save_own_pieces(ai_1.color)
-                ai_1.play_random(board)
+                ai_1.play_moves(board, 'random')
                 screen.fill((0, 0, 0))
                 draw_board(screen)
                 print_last_move(screen, board)
@@ -139,7 +139,7 @@ def main():
         if game.player == ai_2.color:
             if not board.game_ended:
                 ai_2.pieces = board.save_own_pieces(ai_2.color)
-                ai_2.play_random(board)
+                ai_2.play_moves(board, 'random')
                 screen.fill((0, 0, 0))
                 draw_board(screen)
                 print_last_move(screen, board)

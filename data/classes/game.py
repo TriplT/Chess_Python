@@ -76,7 +76,6 @@ class Game:
         text = font_1.render(message, True, color_light_green)
         text_rect = text.get_rect(center=(screen_x / 2, int(screen_y / 2 - height / 10)))
 
-        print(message)
         personal_message = 'error'
         if message == 'checkmate':
             if self.player == 'white':
