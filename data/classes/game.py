@@ -24,8 +24,9 @@ class Game:
             ai.play_moves(board, ai.engine)
             self.turn_made()
 
+    # check if self.player is indeed white when white wins or if it already changed to black
     def game_end_100ava(self, board, message):
-        if self.game_run_through <= 100:
+        if self.game_run_through <= 99:
             if message == 'checkmate':
                 if self.player == 'white':
                     self.white_wins += 1
@@ -35,7 +36,7 @@ class Game:
                     or message == 'repetition' or message == '50 move-rule':
                 self.draws += 1
 
-            if self.game_run_through == 100:
+            if self.game_run_through == 99:
                 print(f'white wins: {self.white_wins} draws: {self.draws} black wins: {self.black_wins}')
                 self.game_run_through += 1
                 self.white_wins = 0
@@ -62,9 +63,9 @@ class Game:
         personal_message = 'error'
         if message == 'checkmate':
             if self.player == 'white':
-                personal_message = 'white won'
-            if self.player == 'black':
                 personal_message = 'black won'
+            if self.player == 'black':
+                personal_message = 'white won'
         elif message == 'stalemate' or message == 'insufficient material' \
                 or message == 'repetition' or message == '50 move-rule':
             personal_message = 'draw'
