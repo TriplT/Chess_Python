@@ -56,24 +56,24 @@ class AI:
                     if isinstance(piece, Pawn):
                         pawns.remove(square)
                 else:
-                    chosen_moves = []
-                    for move in piece.moves:
-                        if isinstance(piece, Pawn):
-                            if abs(move.initial_square.file - move.final_square.file) == 1:
-                                chosen_moves.append(move)
-                                break
-                            elif abs(move.initial_square.rank - move.final_square.rank) == 2:
-                                chosen_moves.append(move)
-                                break
-                            else:
-                                chosen_moves.append(move)
+                    move = None
+                    if_statements = [lambda m: abs(m.initial_square.file - m.final_square.file) == 1,
+                                     lambda m: abs(m.initial_square.rank - m.final_square.rank) == 2,
+                                     lambda m: abs(m.initial_square.rank - m.final_square.rank) == 1]
+
+                    for condition in if_statements:
+                        if move is not None:
+                            break
+                        for m in piece.moves:
+                            if isinstance(piece, Pawn) and condition(m):
+                                move = m
                                 break
 
-                    else:
-                        chosen_moves.append(random.choice(piece.moves))
+                    if not move:
+                        move = random.choice(piece.moves)
 
-                    if board.valid_move(piece, chosen_moves[0]):
-                        promotion_piece = random.choice(self.promotion_pieces)
+                    if board.valid_move(piece, move):
+                        promotion_piece = self.promotion_pieces[0]
                         board.ai_move(piece, move, promotion_piece)
                         return
 
@@ -96,13 +96,19 @@ class AI:
                         return
 
         # engine names
-        if engine == 'alea iacta est':
+        if engine == 'alea iacta est':  # plays random moves throughout the game
             play_random()
 
-        if engine == 'ambitious promoter':
+        if engine == 'ambitious promoter':  # tries to promote at every opportunity
             play_try_to_promote_pawns()
 
-        if engine == 'berserk killer':
+        if engine == 'berserk killer':  # tries to kill at every opportunity
+            play_berserk_killer()
+
+        if engine == 'interstellar calculator':  # best engine
+            play_random()
+
+        if engine == 'AI annihilator':  # best engine-like engine (or is it?)
             play_berserk_killer()
 
 
