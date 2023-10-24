@@ -78,22 +78,37 @@ class AI:
                         return
 
         def play_berserk_killer():
-            while True:
-                square = random.choice(self.squares_with_piece)
+            capture_moves = []
+            global move
+            global piece
+            move = None
+            piece = None
+
+            for square in self.squares_with_piece:
                 piece = square.piece
                 board.calculate_valid_moves(piece, square.rank, square.file, bool=True)
+                for m in piece.moves:
+                    if board.squares[m.final_square.rank][m.final_square.file].piece:
+                        capture_moves.append(m)
 
-                if not piece.moves:
-                    self.squares_with_piece.remove(square)
-                else:
-                    for m in piece.moves:
-                        if board.squares[m.final_square.rank][m.final_square.file].piece:
-                            move = m
+            if capture_moves:
+                move = random.choice(capture_moves)
+                piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
+            else:
+                while True:
+                    square = random.choice(self.squares_with_piece)
+                    piece = square.piece
+                    board.calculate_valid_moves(piece, square.rank, square.file, bool=True)
 
-                    if board.valid_move(piece, move):
-                        promotion_piece = random.choice(self.promotion_pieces)
-                        board.ai_move(piece, move, promotion_piece)
-                        return
+                    if not piece.moves:
+                        self.squares_with_piece.remove(square)
+                    else:
+                        move = random.choice(piece.moves)
+                        break
+
+            if board.valid_move(piece, move):
+                promotion_piece = random.choice(self.promotion_pieces)
+                board.ai_move(piece, move, promotion_piece)
 
         # engine names
         if engine == 'alea iacta est':  # plays random moves throughout the game
@@ -109,7 +124,7 @@ class AI:
             play_random()
 
         if engine == 'AI annihilator':  # best engine-like engine (or is it?)
-            play_berserk_killer()
+            play_random()
 
 
 

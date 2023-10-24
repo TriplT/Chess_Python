@@ -33,7 +33,14 @@ def main():
     dragger = Dragger()
     board = Board()
     game = Game('pvp', 'white')
-    ai_1 = AI('ambitious promoter', 0, 1, None)
+    '''
+    AI: 'alea iacta est'
+        'ambitious promoter'
+        'berserk killer'
+        'interstellar calculator'
+        'AI annihilator'
+    '''
+    ai_1 = AI('berserk killer', 0, 1, None)
     ai_2 = AI('alea iacta est', 0, 1, None)
 
     while True:
