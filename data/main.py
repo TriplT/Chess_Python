@@ -33,8 +33,8 @@ def main():
     dragger = Dragger()
     board = Board()
     game = Game('pvp', 'white')
-    ai_1 = AI('random', 0, 1, None)
-    ai_2 = AI('random', 0, 1, None)
+    ai_1 = AI('ambitious promoter', 0, 1, None)
+    ai_2 = AI('alea iacta est', 0, 1, None)
 
     while True:
         screen.fill((0, 0, 0))
@@ -55,9 +55,10 @@ def main():
                     ai_2.color = None
                 elif game.game_mode == 'pva':
                     ai_1.color = 'black'
+                    ai_2.color = None
                 elif game.game_mode == 'ava' or '100ava':
-                    ai_1.color = 'black'
-                    ai_2.color = 'white'
+                    ai_1.color = 'white'
+                    ai_2.color = 'black'
 
                 if 560 < dragger.mouseX < 1360 and 140 < dragger.mouseY < 940:
                     clicked_file = int((dragger.mouseX - (screen_x // 2 - 4 * square_size)) // square_size)

@@ -28,7 +28,7 @@ class Game:
     def game_end_100ava(self, board, message):
         if self.game_run_through <= 99:
             if message == 'checkmate':
-                if self.player == 'white':
+                if self.player == 'black':
                     self.white_wins += 1
                 else:
                     self.black_wins += 1
@@ -37,6 +37,7 @@ class Game:
                 self.draws += 1
 
             if self.game_run_through == 99:
+                print(self.game_run_through)
                 print(f'white wins: {self.white_wins} draws: {self.draws} black wins: {self.black_wins}')
                 self.game_run_through += 1
                 self.white_wins = 0
@@ -45,6 +46,8 @@ class Game:
                 return
             else:
                 self.game_run_through += 1
+                print(self.game_run_through)
+                print(f'white wins: {self.white_wins} draws: {self.draws} black wins: {self.black_wins}')
                 board.reset_board()
                 board.add_startposition('white')
                 board.add_startposition('black')
