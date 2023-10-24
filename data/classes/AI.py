@@ -1,4 +1,5 @@
 import random
+import math
 from Pycharm_Projects.Chess_Test.data.classes.board import *
 
 
@@ -14,7 +15,8 @@ class AI:
         self.promotion_pieces = [Queen, Knight, Bishop, Rook]
 
     def play_moves(self, board, engine='alea iacta est'):
-        self.squares_with_piece = board.save_own_pieces(self.color)
+        print(self.evaluate_position(board))
+        self.squares_with_piece = board.save_own_square_pieces(self.color)
 
         if not self.squares_with_piece:
             exit(0)
@@ -49,7 +51,7 @@ class AI:
                     square = random.choice(pawns)
 
                 piece = square.piece
-                board.calculate_valid_moves(piece, square.rank, square.file, bool=True)
+                board.calculate_valid_moves(piece, square.rank, square.file, bool=False)
 
                 if not piece.moves:
                     self.squares_with_piece.remove(square)
@@ -110,6 +112,19 @@ class AI:
                 promotion_piece = random.choice(self.promotion_pieces)
                 board.ai_move(piece, move, promotion_piece)
 
+        def play_interstellar():
+            moves = self.minimax(board, 4, -math.inf, math.inf, True, True, [[], 0])
+
+            if len(moves) == 0:
+                return False
+            best_score = max(moves[0], key=lambda x: x[2])[2]
+            piece_and_move = random.choice([move for move in moves[0] if move[2] == best_score])
+            piece = piece_and_move[0]
+            move = piece_and_move[1]
+            if piece and len(move) > 0 and isinstance(move, tuple):
+                board.ai_move(piece, move)
+            return True
+
         # engine names
         if engine == 'alea iacta est':  # plays random moves throughout the game
             play_random()
@@ -121,11 +136,80 @@ class AI:
             play_berserk_killer()
 
         if engine == 'interstellar calculator':  # best engine
-            play_random()
+            play_interstellar()
 
         if engine == 'AI annihilator':  # best engine-like engine (or is it?)
             play_random()
 
+    def evaluate_position(self, board):
+        pieces = board.save_all_pieces()
+        position_value = 0
+        for piece in pieces:
+            position_value += piece.value
+
+        if self.color == 'white':
+            return round(position_value, 3)
+        else:
+            return - round(position_value, 3)
+
+    def minimax(self, board, depth, alpha, beta, maximizing_player, save_move, data):
+        print('minimax starting')
+        if depth == 0 or board.check_game_end(self.color):
+            print('game ended??? or depth == 0???')
+            data[1] = self.evaluate_position(board)
+            print('lets return')
+            return data
+
+        if maximizing_player:
+            print('minimax for max')
+            max_eval = -math.inf
+
+            for rank in range(ranks):
+                for file in range(files):
+                    piece = board.squares[rank][file].piece
+                    if piece and piece.color != self.color:
+                        print('calc valid moves')
+                        board.calculate_valid_moves(piece, rank, file, bool=True)
+                        for move in piece.moves:
+                            # wie machen wir das mit der promotion????
+                            board.ai_move(piece, move, self.promotion_pieces[0], True)
+                            eval = self.minimax(board, depth - 1, alpha, beta, False, False, data)[1]
+                            if save_move:
+                                if eval >= max_eval:
+                                    if eval > data[1]:
+                                        data.clear()
+                                        data[1] = eval
+                                        data[0] = [piece, move, eval]
+                                    elif eval == data[1]:
+                                        data[0].append([piece, move, eval])
+                            board.unmake_move(piece, move)
+                            max_eval = max(max_eval, eval)
+                            alpha = max(alpha, eval)
+                            if beta <= alpha:
+                                break
+            print(data)
+            return data
+
+        else:
+            print('minimax for min')
+            min_eval = math.inf
+
+            for rank in range(ranks):
+                for file in range(files):
+                    piece = board.squares[rank][file].piece
+                    if piece and piece.color == self.color:
+                        print('calc valid moves')
+                        board.calculate_valid_moves(piece, rank, file, bool=True)
+                        for move in piece.moves:
+                            board.ai_move(piece, move, self.promotion_pieces[0], True)
+                            eval = self.minimax(board, depth - 1, alpha, beta, True, False, data)[1]
+                            board.unmake_move(piece, move)
+                            min_eval = min(min_eval, eval)
+                            beta = min(beta, eval)
+                            if beta <= alpha:
+                                break
+            print(data)
+            return data
 
 
 

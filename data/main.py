@@ -40,7 +40,8 @@ def main():
         'interstellar calculator'
         'AI annihilator'
     '''
-    ai_1 = AI('berserk killer', 0, 1, None)
+
+    ai_1 = AI('interstellar calculator', 0, 1, None)
     ai_2 = AI('alea iacta est', 0, 1, None)
 
     while True:
@@ -135,7 +136,7 @@ def main():
             print_pieces(screen, board, dragger)
 
         if board.move_played:
-            board.game_end(game)
+            board.game_end(game.player)
         if board.win_message:
             if game.game_mode == '100ava':
                 game.game_end_100ava(board, board.win_message)
