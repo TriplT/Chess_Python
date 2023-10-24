@@ -77,12 +77,33 @@ class AI:
                         board.ai_move(piece, move, promotion_piece)
                         return
 
+        def play_berserk_killer():
+            while True:
+                square = random.choice(self.squares_with_piece)
+                piece = square.piece
+                board.calculate_valid_moves(piece, square.rank, square.file, bool=True)
+
+                if not piece.moves:
+                    self.squares_with_piece.remove(square)
+                else:
+                    for m in piece.moves:
+                        if board.squares[m.final_square.rank][m.final_square.file].piece:
+                            move = m
+
+                    if board.valid_move(piece, move):
+                        promotion_piece = random.choice(self.promotion_pieces)
+                        board.ai_move(piece, move, promotion_piece)
+                        return
+
         # engine names
         if engine == 'alea iacta est':
             play_random()
 
         if engine == 'ambitious promoter':
             play_try_to_promote_pawns()
+
+        if engine == 'berserk killer':
+            play_berserk_killer()
 
 
 
