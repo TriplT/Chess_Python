@@ -95,7 +95,8 @@ class Board:
 
     def ai_move(self, piece, move, promotion_piece=None, set_history=False):
         if set_history:
-            self.save_last_eaten_piece(self.squares[move.final_square.rank][move.final_square.file].piece)
+            last_piece = self.squares[move.final_square.rank][move.final_square.file].piece
+            self.save_last_eaten_piece(last_piece)
 
         self.squares[move.initial_square.rank][move.initial_square.file].piece = None
         self.squares[move.final_square.rank][move.final_square.file].piece = piece
@@ -141,6 +142,7 @@ class Board:
             print('unexpected error, piece.color not white or black')
 
     def save_last_eaten_piece(self, piece):
+        # piece.moved ???
         self.last_eaten_piece.append(piece)
 
     def get_last_eaten_piece(self):
@@ -150,7 +152,12 @@ class Board:
         last_eaten_piece = self.get_last_eaten_piece()
 
         self.squares[move.initial_square.rank][move.initial_square.file].piece = piece
-        self.squares[move.final_square.rank][move.final_square.file].piece = last_eaten_piece
+        if last_eaten_piece:
+            self.squares[move.final_square.rank][move.final_square.file].piece = last_eaten_piece
+        else:
+            self.squares[move.final_square.rank][move.final_square.file].piece = None
+
+        self.move_played = False
 
     @staticmethod
     def valid_move(piece, move):
@@ -638,6 +645,41 @@ class Board:
         else:
             rank_pawn, rank_piece = (1, 0)
 
+        if color == 'white':
+            self.squares[2][2] = Square(2, 2, Knight(color))
+            self.squares[5][0] = Square(5, 0, Pawn(color))
+
+        if color == 'black':
+            self.squares[4][0] = Square(4, 0, Pawn(color))
+
+        self.squares[rank_piece][4] = Square(rank_piece, 4, King(color))
+
+    def add_startpositio(self, color):
+        if color == 'white':
+            rank_pawn, rank_piece = (6, 7)
+        else:
+            rank_pawn, rank_piece = (1, 0)
+
+        self.squares[rank_piece][1] = Square(rank_piece, 1, Knight(color))
+        self.squares[rank_piece][6] = Square(rank_piece, 6, Knight(color))
+
+        self.squares[rank_piece][2] = Square(rank_piece, 2, Bishop(color))
+        self.squares[rank_piece][5] = Square(rank_piece, 5, Bishop(color))
+
+        self.squares[rank_piece][0] = Square(rank_piece, 0, Rook(color))
+        self.squares[rank_piece][7] = Square(rank_piece, 7, Rook(color))
+
+        self.squares[rank_piece][4] = Square(rank_piece, 4, King(color))
+
+        self.squares[rank_piece][3] = Square(rank_piece, 3, Queen(color))
+
+
+    def add_startpositio(self, color):
+        if color == 'white':
+            rank_pawn, rank_piece = (6, 7)
+        else:
+            rank_pawn, rank_piece = (1, 0)
+
         for file in range(files):
             self.squares[rank_pawn][file] = Square(rank_pawn, file, Pawn(color))
 
@@ -678,16 +720,28 @@ class Board:
                     counter += 1
         self.last_num_of_pieces = counter
 
-    def get_moves(self):
+    def get_moves(self, color):
         lst = []
         for rank in range(ranks):
             for file in range(files):
-                piece = self.squares[rank][file].piece
-                if piece:
+                if self.squares[rank][file].occupied_by_teammate(color):
+                    piece = self.squares[rank][file].piece
                     self.calculate_valid_moves(piece, rank, file, bool=True)
                     for move in piece.moves:
                         lst.append(move)
+                    piece.moves = []
         return lst
+
+    def evaluate_position(self, color):
+        pieces = self.save_all_pieces()
+        position_value = 0
+        for piece in pieces:
+            position_value += piece.value
+
+        if color == 'white':
+            return round(position_value, 3)
+        else:
+            return -round(position_value, 3)
 
     # functions for debugging:
 
