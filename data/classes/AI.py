@@ -5,6 +5,7 @@ from Pycharm_Projects.Chess_Test.data.classes.board import *
 
 class AI:
 
+    promotion_pieces = [Queen, Knight, Bishop, Rook]
     def __init__(self, engine, difficulty, depth, color):
         self.engine = engine
         self.difficulty = difficulty
@@ -12,11 +13,13 @@ class AI:
         self.color = color
 
         self.squares_with_piece = []
+        self.moves = []
         self.promotion_pieces = [Queen, Knight, Bishop, Rook]
 
     def play_moves(self, board, engine='alea iacta est'):
         print(board.evaluate_position(self.color))
         self.squares_with_piece = board.save_own_square_pieces(self.color)
+        self.moves = board.get_moves(self.color)
 
         if not self.squares_with_piece:
             exit(0)
