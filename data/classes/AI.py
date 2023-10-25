@@ -23,8 +23,6 @@ class AI:
 
         # engines
         def play_random():
-            print(self.minmax(board, 4, -math.inf, math.inf, True))
-            print('minimax printed')
             while True:
                 square = random.choice(self.squares_with_piece)
                 piece = square.piece
