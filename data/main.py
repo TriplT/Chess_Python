@@ -41,8 +41,8 @@ def main():
         'AI annihilator'
     '''
 
-    ai_1 = AI('ambitious promoter', 0, 1, None)
-    ai_2 = AI('alea iacta est', 0, 1, None)
+    ai_1 = AI('interstellar calculator', 0, 1, None)
+    ai_2 = AI('interstellar calculator', 0, 1, None)
 
     while True:
         screen.fill((0, 0, 0))

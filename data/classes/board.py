@@ -646,13 +646,24 @@ class Board:
             rank_pawn, rank_piece = (1, 0)
 
         if color == 'white':
-            self.squares[2][2] = Square(2, 2, Knight(color))
+            self.squares[2][0] = Square(2, 0, Knight(color))
+
             self.squares[5][0] = Square(5, 0, Pawn(color))
+
+            self.squares[1][3] = Square(1, 3, Pawn(color))
+            self.squares[2][3] = Square(2, 3, Pawn(color))
+            self.squares[3][3] = Square(3, 3, Pawn(color))
+            # self.squares[3][2] = Square(3, 2, Pawn(color))
+
+            self.squares[2][2] = Square(2, 2, King(color))
 
         if color == 'black':
             self.squares[4][0] = Square(4, 0, Pawn(color))
 
-        self.squares[rank_piece][4] = Square(rank_piece, 4, King(color))
+            self.squares[0][3] = Square(0, 3, Pawn(color))
+
+            self.squares[0][0] = Square(0, 0, King(color))
+
 
     def add_startpositio(self, color):
         if color == 'white':
@@ -729,7 +740,19 @@ class Board:
                     self.calculate_valid_moves(piece, rank, file, bool=True)
                     for move in piece.moves:
                         lst.append(move)
-                    piece.moves = []
+        return lst
+
+    def get_movess(self, color):
+        lst = []
+        for rank in range(ranks):
+            for file in range(files):
+                if self.squares[rank][file].occupied_by_teammate(color):
+
+                    piece = self.squares[rank][file].piece
+                    self.calculate_valid_moves(piece, rank, file, bool=True)
+
+                    for move in piece.moves:
+                        lst.append(move)
         return lst
 
     def evaluate_position(self, color):
