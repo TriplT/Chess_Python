@@ -158,6 +158,7 @@ class Board:
             self.squares[move.final_square.rank][move.final_square.file].piece = None
 
         self.move_played = False
+        self.move_counter -= 1
 
     @staticmethod
     def valid_move(piece, move):
@@ -639,7 +640,7 @@ class Board:
         self.win_message = False
         self.game_ended = False
 
-    def add_startposition(self, color):
+    def add_startpositio(self, color):
         if color == 'white':
             rank_pawn, rank_piece = (6, 7)
         else:
@@ -665,7 +666,7 @@ class Board:
             self.squares[0][0] = Square(0, 0, King(color))
 
 
-    def add_startpositio(self, color):
+    def add_startposition(self, color):
         if color == 'white':
             rank_pawn, rank_piece = (6, 7)
         else:
