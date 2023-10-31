@@ -141,6 +141,31 @@ class Board:
         else:
             print('unexpected error, piece.color not white or black')
 
+    def ai_move_simulation(self, piece, move, promotion_piece=None, set_history=False):
+        if set_history:
+            last_piece = self.squares[move.final_square.rank][move.final_square.file].piece
+            self.save_last_eaten_piece(last_piece)
+
+        self.squares[move.initial_square.rank][move.initial_square.file].piece = None
+        self.squares[move.final_square.rank][move.final_square.file].piece = piece
+
+        if isinstance(piece, Pawn):
+            self.en_passant(piece, move, self.last_move)
+            self.ai_pawn_promotion(piece, move.final_square, promotion_piece)
+
+        if isinstance(piece, King):
+            if self.castling(move.initial_square, move.final_square):
+                diff = move.final_square.file - move.initial_square.file
+                rook = piece.left_rook if (diff < 0) else piece.right_rook
+                self.ai_move(rook, rook.moves[-1])
+
+        self.move_played = True
+        piece.clear_moves()
+        self.current_moves = []
+
+        self.last_piece = piece
+        self.last_move = move
+
     def save_last_eaten_piece(self, piece):
         # piece.moved ???
         self.last_eaten_piece.append(piece)
@@ -157,8 +182,7 @@ class Board:
         else:
             self.squares[move.final_square.rank][move.final_square.file].piece = None
 
-        self.move_played = False
-        self.move_counter -= 1
+
 
     @staticmethod
     def valid_move(piece, move):

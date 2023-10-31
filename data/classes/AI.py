@@ -116,7 +116,7 @@ class AI:
                 board.ai_move(piece, move, promotion_piece)
 
         def play_interstellar():
-            eval, move = self.minimax(board, 4, -math.inf, math.inf, True)
+            eval, move = self.minimax(board, 2, -math.inf, math.inf, True)
             print(move)
             print(eval)
             piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
