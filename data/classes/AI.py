@@ -116,7 +116,7 @@ class AI:
                 board.ai_move(piece, move, promotion_piece)
 
         def play_interstellar():
-            eval, move = self.minimax(board, 2, -math.inf, math.inf, True)
+            eval, move = self.minimax(board, 6, -math.inf, math.inf, True)
             print(move)
             print(eval)
             piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
@@ -158,6 +158,74 @@ class AI:
             else:
                 player_color = 'white'
 
+        if board.check_game_end(player_color, max_player):
+            print(f'game end eval: {board.evaluation}')
+            return board.evaluation, best_move
+        elif depth == 0:
+            print(' ')
+            print('depth reached')
+            print(' ')
+            board.evaluate_position(player_color)
+            return board.evaluation, best_move
+
+        if max_player:
+            max_eval = -math.inf
+            max_move = -math.inf
+
+            for move in board.calculate_all_valid_moves(player_color):
+                piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
+
+                print(f'depth: {depth}')
+                print(f'{player_color} move: {piece.name} to ({move.final_square.rank, move.final_square.file})')
+
+                board.ai_move_simulation(piece, move, self.promotion_pieces[0], True)
+                evaluation = self.minimax(board, depth - 1, alpha, beta, False)
+                board.unmake_move(piece, move)
+
+                max_eval = max(max_eval, evaluation[0])
+                if max_eval > max_move:
+                    max_move = max_eval
+                    best_max_move = move
+
+                alpha = max(alpha, evaluation[0])
+                if beta <= alpha:
+                    break
+            return max_eval, best_max_move
+
+        else:
+            min_eval = math.inf
+            min_move = math.inf
+
+            for move in board.calculate_all_valid_moves(player_color):
+                piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
+
+                print(f'depth: {depth}')
+                print(f'{player_color} move: {piece.name} to ({move.final_square.rank, move.final_square.file})')
+
+                board.ai_move_simulation(piece, move, self.promotion_pieces[0], True)
+                evaluation = self.minimax(board, depth - 1, alpha, beta, True)
+                board.unmake_move(piece, move)
+
+                min_eval = min(min_eval, evaluation[0])
+                if min_eval < min_move:
+                    min_move = min_eval
+                    best_min_move = move
+
+                beta = min(beta, evaluation[0])
+                if beta <= alpha:
+                    break
+            return min_eval, best_min_move
+
+    def minimax_copy(self, board, depth, alpha, beta, max_player, best_move=Move((7, 7), (7, 8))):
+
+        if max_player:
+            player_color = self.color
+        else:
+            if self.color == 'white':
+                player_color = 'black'
+            else:
+                player_color = 'white'
+
         if depth == 0 or board.check_game_end(player_color):
             return board.evaluate_position(player_color), best_move
 
@@ -168,7 +236,7 @@ class AI:
             for move in board.get_movess(player_color):
                 piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
 
-                board.ai_move(piece, move, self.promotion_pieces[0], True)
+                board.ai_move_simulation(piece, move, self.promotion_pieces[0], True)
                 evaluation = self.minimax(board, depth - 1, alpha, beta, False)
                 board.unmake_move(piece, move)
 
@@ -189,7 +257,7 @@ class AI:
             for move in board.get_movess(player_color):
                 piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
 
-                board.ai_move(piece, move, self.promotion_pieces[0], True)
+                board.ai_move_simulation(piece, move, self.promotion_pieces[0], True)
                 evaluation = self.minimax(board, depth - 1, alpha, beta, True)
                 board.unmake_move(piece, move)
 
@@ -204,7 +272,7 @@ class AI:
                     break
             return min_eval, best_min_move
 
-    def minimax_copy(self, board, depth, alpha, beta, max_player, best_move=Move((7, 7), (7, 8))):
+    def minimax_copy_2(self, board, depth, alpha, beta, max_player, best_move=Move((7, 7), (7, 8))):
 
         if max_player:
             player_color = self.color
@@ -262,7 +330,7 @@ class AI:
                     break
             return min_eval
 
-    def minimax_copy_2(self, board, depth, alpha, beta, max_player, best_move=Move((7, 7), (7, 8))):
+    def minimax_copy_3(self, board, depth, alpha, beta, max_player, best_move=Move((7, 7), (7, 8))):
 
         print(' ')
         print('minimax starting')
