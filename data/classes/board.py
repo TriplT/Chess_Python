@@ -165,6 +165,8 @@ class Board:
         piece.moved = True
         piece.clear_moves()
 
+        self.move_counter += 1
+
     def save_last_eaten_piece(self, piece):
         # piece.moved ???
         self.last_eaten_piece.append(piece)
@@ -185,6 +187,7 @@ class Board:
             if move.final_square.rank - move.initial_square.rank == 2:
                 piece.moved = False
 
+        self.move_counter -= 1
 
     @staticmethod
     def valid_move(piece, move):
@@ -744,7 +747,7 @@ class Board:
                             (1, 0)])
         return valid_moves
 
-    def check_game_end(self, color, max_player):
+    def game_end_minimax(self, color, max_player):
         checkmate = False
         stalemate = True
         piece_list = []
@@ -795,9 +798,13 @@ class Board:
             self.last_num_of_pieces = len(piece_list)
             self.move_counter = 0
 
-        if checkmate:
+        if checkmate and stalemate:
             print('CHECKMATE')
-            self.evaluation = -math.inf if max_player else math.inf
+            # calculates worth of checkmate decreasing in value when it takes more moves
+            if max_player:
+                self.evaluation = - 100000.0 + self.move_counter
+            else:
+                self.evaluation = 100000.0 - self.move_counter
             return True
         elif insufficient_material:
             self.evaluation = 0.0
@@ -945,13 +952,13 @@ class Board:
                         lst.append(move)
         return lst
 
-    def evaluate_position(self, color):
+    def evaluate_position(self, max_player):
         pieces = self.save_all_pieces()
         position_value = 0
         for piece in pieces:
             position_value += piece.value
 
-        if color == 'white':
+        if max_player:
             self.evaluation = round(position_value, 3)
         else:
             self.evaluation = -round(position_value, 3)
