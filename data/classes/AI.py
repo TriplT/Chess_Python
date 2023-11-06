@@ -121,7 +121,7 @@ class AI:
                 board.ai_move(piece, move, promotion_piece)
 
         def play_interstellar():
-            evaluation, final_move = self.minimax(board, 6, -math.inf, math.inf, True)
+            evaluation, final_move = self.minimax(board, 2, -math.inf, math.inf, True)
 
             print(' ')
             print(f'minimax count: {self.minimax_count}')
@@ -136,7 +136,7 @@ class AI:
             piece = board.squares[final_move.initial_square.rank][final_move.initial_square.file].piece
 
             if final_move:
-                board.ai_move(piece, final_move, self.promotion_pieces[0], False)
+                board.ai_move(piece, final_move, False)
                 print(' ')
                 print('AI MOVE PLAYED')
                 print(' ')
@@ -191,7 +191,7 @@ class AI:
                 print(f'depth: {depth}')
                 print(f'{player_color} move: {piece.name} to ({move.final_square.rank, move.final_square.file})')
 
-                board.ai_move_simulation(piece, move, self.promotion_pieces[0], True)
+                board.ai_move_simulation(piece, move, True)
                 evaluation = self.minimax(board, depth - 1, alpha, beta, False)
                 board.unmake_move(piece, move)
 
@@ -225,7 +225,7 @@ class AI:
                 print(f'depth: {depth}')
                 print(f'{player_color} move: {piece.name} to ({move.final_square.rank, move.final_square.file})')
 
-                board.ai_move_simulation(piece, move, self.promotion_pieces[0], True)
+                board.ai_move_simulation(piece, move, True)
                 evaluation = self.minimax(board, depth - 1, alpha, beta, True)
                 board.unmake_move(piece, move)
 

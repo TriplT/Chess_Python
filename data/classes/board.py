@@ -95,7 +95,7 @@ class Board:
         else:
             print('unexpected error, piece.color not white or black')
 
-    def ai_move(self, piece, move, promotion_piece=None, set_history=False):
+    def ai_move(self, piece, move, set_history=False):
         if set_history:
             last_piece = self.squares[move.final_square.rank][move.final_square.file].piece
             self.save_last_eaten_piece(last_piece)
@@ -105,7 +105,7 @@ class Board:
 
         if isinstance(piece, Pawn):
             self.en_passant(piece, move, self.last_move)
-            self.ai_pawn_promotion(piece, move.final_square, promotion_piece)
+            self.ai_pawn_promotion(piece, move)
 
         if isinstance(piece, King):
             if self.castling(move.initial_square, move.final_square):
@@ -143,7 +143,7 @@ class Board:
         else:
             print('unexpected error, piece.color not white or black')
 
-    def ai_move_simulation(self, piece, move, promotion_piece=None, set_history=False):
+    def ai_move_simulation(self, piece, move, set_history=False):
         if set_history:
             last_piece = self.squares[move.final_square.rank][move.final_square.file].piece
             self.save_last_eaten_piece(last_piece)
@@ -153,7 +153,7 @@ class Board:
 
         if isinstance(piece, Pawn):
             self.en_passant(piece, move, self.last_move)
-            self.ai_pawn_promotion(piece, move.final_square, promotion_piece)
+            self.ai_pawn_promotion(piece, move)
 
         if isinstance(piece, King):
             if self.castling(move.initial_square, move.final_square):
@@ -200,9 +200,9 @@ class Board:
     def castling(initial, final):
         return abs(initial.file - final.file) == 2
 
-    def ai_pawn_promotion(self, piece, last, promotion_piece):
-        if isinstance(piece, Pawn) and (last.rank == 0 or last.rank == 7):
-            self.squares[last.rank][last.file].piece = promotion_piece(piece.color)
+    def ai_pawn_promotion(self, piece, move):
+        if isinstance(piece, Pawn) and (move.final_square.rank == 0 or move.final_square.rank == 7):
+            self.squares[move.final_square.rank][move.final_square.file].piece = move.promotion_piece(piece.color)
 
     def player_pawn_promotion(self, screen, piece, last, game):
         if isinstance(piece, Pawn) and (last.rank == 0 or last.rank == 7):
@@ -527,6 +527,7 @@ class Board:
         valid_moves = []
 
         def pawn_moves():
+            promotion_pieces = [Queen, Knight, Bishop, Rook]
             steps = 1 if piece.moved else 2
 
             # vertical moves
@@ -540,10 +541,13 @@ class Board:
                         final_pos = Square(possible_move_rank, file)
                         move = Move(initial_pos, final_pos)
 
-                        # pawn promotion für ai
-
                         if not self.in_check(piece, move):
-                            valid_moves.append(move)
+                            if final_pos.rank == 0 or final_pos.rank == 7:
+                                for promotion_piece in promotion_pieces:
+                                    move = Move(initial_pos, final_pos, promotion_piece)
+                                    valid_moves.append(move)
+                            else:
+                                valid_moves.append(move)
 
                     # pawn is blocked by piece
                     else:
@@ -565,7 +569,12 @@ class Board:
                         move = Move(initial_pos, final_pos)
 
                         if not self.in_check(piece, move):
-                            valid_moves.append(move)
+                            if final_pos.rank == 0 or final_pos.rank == 7:
+                                for promotion_piece in promotion_pieces:
+                                    move = Move(initial_pos, final_pos, promotion_piece)
+                                    valid_moves.append(move)
+                            else:
+                                valid_moves.append(move)
 
             if self.last_move is not None:
                 last_initial = self.last_move.initial_square
@@ -967,14 +976,15 @@ class Board:
         # check_stale_and_checkmate
 
         if color == 'white':
-            self.squares[7][7] = Square(7, 7, Rook(color))
+            self.squares[1][7] = Square(1, 7, Pawn(color))
+            self.squares[6][7] = Square(6, 7, Rook(color))
 
             # self.squares[3][2] = Square(3, 2, Pawn(color))
 
-            self.squares[2][1] = Square(2, 1, King(color))
+            self.squares[7][2] = Square(7, 2, King(color))
 
         if color == 'black':
-            self.squares[0][0] = Square(0, 0, King(color))
+            self.squares[7][0] = Square(7, 0, King(color))
 
     def add_startpositio(self, color):
 
