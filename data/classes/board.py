@@ -961,13 +961,13 @@ class Board:
                         lst.append(move)
         return lst
 
-    def evaluate_position(self, max_player):
+    def evaluate_position(self, color):
         pieces = self.save_all_pieces()
         position_value = 0
         for piece in pieces:
             position_value += piece.value
 
-        if max_player:
+        if color == 'white':
             self.evaluation = round(position_value, 3)
         else:
             self.evaluation = -round(position_value, 3)

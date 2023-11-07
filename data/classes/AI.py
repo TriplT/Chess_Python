@@ -210,8 +210,9 @@ class AI:
                     self.alpha_beta_pruning_count += 1
                     self.max_pruning_count += 1
                     break
-            print(f'best outcome max_player: {max_eval} with move: {board.squares[best_max_move.initial_square.rank][best_max_move.initial_square.file].piece.name}'
-                  f'from ({best_max_move.initial_square.rank, best_max_move.initial_square.file})'
+            print(f'best outcome max_player ({player_color}): {max_eval} with move: '
+                  f'{board.squares[best_max_move.initial_square.rank][best_max_move.initial_square.file].piece.name}'
+                  f' from ({best_max_move.initial_square.rank, best_max_move.initial_square.file})'
                   f' to ({best_max_move.final_square.rank, best_max_move.final_square.file})')
             return max_eval, best_max_move
 
@@ -239,8 +240,9 @@ class AI:
                     self.alpha_beta_pruning_count += 1
                     self.min_pruning_count += 1
                     break
-            print(f'best outcome min_player: {min_eval} with move: {board.squares[best_min_move.initial_square.rank][best_min_move.initial_square.file].piece.name}'
-                  f'from ({best_min_move.initial_square.rank, best_min_move.initial_square.file})'
+            print(f'best outcome min_player ({player_color}): {min_eval} with move: '
+                  f'{board.squares[best_min_move.initial_square.rank][best_min_move.initial_square.file].piece.name}'
+                  f' from ({best_min_move.initial_square.rank, best_min_move.initial_square.file})'
                   f' to ({best_min_move.final_square.rank, best_min_move.final_square.file})')
             return min_eval, best_min_move
 
