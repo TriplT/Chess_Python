@@ -973,42 +973,6 @@ class Board:
             self.evaluation = -round(position_value, 3)
 
     def add_startposition(self, color):
-        # check_stale_and_checkmate
-
-        if color == 'white':
-            self.squares[1][7] = Square(1, 7, Pawn(color))
-            self.squares[6][7] = Square(6, 7, Rook(color))
-
-            # self.squares[3][2] = Square(3, 2, Pawn(color))
-
-            self.squares[7][2] = Square(7, 2, King(color))
-
-        if color == 'black':
-            self.squares[7][0] = Square(7, 0, King(color))
-
-    def add_startpositio(self, color):
-
-        if color == 'white':
-            self.squares[2][0] = Square(2, 0, Knight(color))
-
-            self.squares[5][0] = Square(5, 0, Pawn(color))
-
-            self.squares[1][3] = Square(1, 3, Pawn(color))
-            self.squares[2][3] = Square(2, 3, Pawn(color))
-            self.squares[3][3] = Square(3, 3, Pawn(color))
-            # self.squares[3][2] = Square(3, 2, Pawn(color))
-
-            self.squares[2][2] = Square(2, 2, King(color))
-
-        if color == 'black':
-            self.squares[4][0] = Square(4, 0, Pawn(color))
-
-            self.squares[0][3] = Square(0, 3, Pawn(color))
-
-            self.squares[0][0] = Square(0, 0, King(color))
-
-
-    def add_startpositio(self, color):
         if color == 'white':
             rank_pawn, rank_piece = (6, 7)
         else:
@@ -1053,24 +1017,38 @@ class Board:
     # functions for debugging:
 
     '''
-        def add_startposition(self, color):
+        def add_startpositio(self, color):
         # check_stale_and_checkmate
-        
         if color == 'white':
-            rank_pawn, rank_piece = (6, 7)
-        else:
-            rank_pawn, rank_piece = (1, 0)
+            self.squares[1][7] = Square(1, 7, Pawn(color))
+            self.squares[6][7] = Square(6, 7, Rook(color))
 
-        self.squares[rank_piece][0] = Square(rank_piece, 2, Pawn(color))
+            # self.squares[3][2] = Square(3, 2, Pawn(color))
 
-        self.squares[rank_piece][2] = Square(rank_piece, 2, Bishop('white'))
-        self.squares[rank_piece][5] = Square(rank_piece, 5, Bishop('white'))
-        self.squares[3][0] = Square(rank_piece, 2, Bishop('white'))
-        self.squares[2][7] = Square(rank_piece, 2, Bishop('white'))
+            self.squares[7][2] = Square(7, 2, King(color))
 
-        self.squares[rank_piece][3] = Square(rank_piece, 2, Bishop('white'))
-        self.squares[rank_piece][6] = Square(rank_piece, 5, Bishop('white'))
-        self.squares[rank_piece][4] = Square(rank_piece, 4, King(color))
+        if color == 'black':
+            self.squares[7][0] = Square(7, 0, King(color))
+        
+        
+        def add_startpositio(self, color):
+        # AI check for check/stalemate
+        if color == 'white':
+            self.squares[2][0] = Square(2, 0, Knight(color))
+
+            self.squares[5][0] = Square(5, 0, Pawn(color))
+            self.squares[4][1] = Square(4, 1, Knight(color))
+            self.squares[1][2] = Square(1,2, Pawn(color))
+            self.squares[1][3] = Square(1, 3, Knight(color))
+            self.squares[2][3] = Square(2, 3, Knight(color))
+            self.squares[3][3] = Square(3, 3, Bishop(color))
+
+            self.squares[3][2] = Square(3, 2, King(color))
+
+        if color == 'black':
+            self.squares[4][0] = Square(4, 0, Pawn(color))
+
+            self.squares[1][0] = Square(1, 0, King(color))
         
         
         def add_startposition(self, color):

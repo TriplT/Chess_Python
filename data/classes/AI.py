@@ -121,7 +121,7 @@ class AI:
                 board.ai_move(piece, move, promotion_piece)
 
         def play_interstellar():
-            evaluation, final_move = self.minimax(board, 2, -math.inf, math.inf, True)
+            evaluation, final_move = self.minimax(board, 4, -math.inf, math.inf, True)
 
             print(' ')
             print(f'minimax count: {self.minimax_count}')
