@@ -6,12 +6,14 @@ from Pycharm_Projects.Chess_Test.data.classes.board import *
 class AI:
 
     promotion_pieces = [Queen, Knight, Bishop, Rook]
+
     def __init__(self, engine, difficulty, depth, color):
         self.engine = engine
         self.difficulty = difficulty
         self.depth = depth
         self.color = color
 
+        self.move_count = 0
         self.squares_with_piece = []
         self.moves = []
         self.promotion_pieces = [Queen, Knight, Bishop, Rook]
@@ -45,6 +47,18 @@ class AI:
                         promotion_piece = random.choice(self.promotion_pieces)
                         board.ai_move(piece, move, promotion_piece)
                         return
+
+        def random_test():
+            # random_move = random.choice(board.get_valid_moves(self.color))
+            move_list = []
+            for random_move in board.get_valid_moves(self.color):
+                move_list.append(random_move)
+                self.move_count += 1
+
+            random_move = random.choice(move_list)
+            piece = board.squares[random_move.initial_square.rank][random_move.initial_square.file].piece
+            board.ai_move(piece, random_move)
+            print(self.move_count)
 
         def play_try_to_promote_pawns():
             pawns = []
@@ -146,6 +160,9 @@ class AI:
         if engine == 'alea iacta est':  # plays random moves throughout the game
             play_random()
 
+        if engine == 'random test':  # plays random moves throughout the game
+            random_test()
+
         if engine == 'ambitious promoter':  # tries to promote at every opportunity
             play_try_to_promote_pawns()
 
@@ -224,7 +241,7 @@ class AI:
                 piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
 
                 print(f'depth: {depth}')
-                print(f'{player_color} move: {piece.name} to ({move.final_square.rank, move.final_square.file})')
+                print(f'{player_color} move: {piece.name if piece.name else None} to ({move.final_square.rank, move.final_square.file})')
 
                 board.ai_move_simulation(piece, move, True)
                 evaluation = self.minimax(board, depth - 1, alpha, beta, True)

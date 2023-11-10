@@ -546,38 +546,37 @@ class Board:
         self.calculate_enemy_attacking_moves('white' if color == 'black' else 'black')
         if self.enemy_checking_squares:
             if self.enemy_attacking_squares[self.king_rank][self.king_file] == 1:
+                print('king IN check: get valid moves')
                 # because the king is in check there will only be moves calculated that put the king out of check
                 return self.in_check_valid_moves(color)
-                pass
         else:
+            print('king NOT in check: get valid moves')
             # because the king is NOT in check moves can be calculated easily
             return self.no_check_valid_moves(color)
 
     def in_check_valid_moves(self, color):
-
+        # WAS HT DAS AUF SICH MIT DEM FINAL PIECE final(rank, file, FINAL PIECE) ?????
         def pawn_moves():
-            promotion_pieces = [Queen, Knight, Bishop, Rook]
             steps = 1 if piece.moved else 2
+
+            # does this work??? the valid moves should not be calculated if the piece is pinned
+            for square in self.pinned_squares:
+                if rank == square[0] and file == square[1]:
+                    return
 
             # vertical moves
             start = rank + piece.direction
             end = rank + (piece.direction * steps)
-
             for possible_move_rank in range(start, end + piece.direction, piece.direction):
                 if Square.in_range(possible_move_rank):
                     if self.squares[possible_move_rank][file].occupied_by_noone():
-                        initial_pos = Square(rank, file)
-                        final_pos = Square(possible_move_rank, file)
-                        move = Move(initial_pos, final_pos)
-
-                        if not self.in_check(piece, move):
-                            if final_pos.rank == 0 or final_pos.rank == 7:
-                                for promotion_piece in promotion_pieces:
-                                    move = Move(initial_pos, final_pos, promotion_piece)
+                        for attacking_pieces in self.enemy_checking_squares:
+                            for square in attacking_pieces:
+                                if possible_move_rank == square[0] and file == square[1]:
+                                    initial_pos = Square(rank, file)
+                                    final_pos = Square(possible_move_rank, file)
+                                    move = Move(initial_pos, final_pos)
                                     valid_moves.append(move)
-                            else:
-                                valid_moves.append(move)
-
                     # pawn is blocked by piece
                     else:
                         break
@@ -591,20 +590,20 @@ class Board:
 
             for possible_move_file in possible_move_files:
                 if Square.in_range(possible_move_rank, possible_move_file):
-                    if self.squares[possible_move_rank][possible_move_file].occupied_by_opponent(piece.color):
-                        initial_pos = Square(rank, file)
-                        final_piece = self.squares[possible_move_rank][possible_move_file].piece
-                        final_pos = Square(possible_move_rank, possible_move_file, final_piece)
-                        move = Move(initial_pos, final_pos)
-
-                        if not self.in_check(piece, move):
-                            if final_pos.rank == 0 or final_pos.rank == 7:
-                                for promotion_piece in promotion_pieces:
-                                    move = Move(initial_pos, final_pos, promotion_piece)
+                    if self.squares[possible_move_rank][possible_move_file].occupied_by_opponent(color):
+                        for attacking_pieces in self.enemy_checking_squares:
+                            for square in attacking_pieces:
+                                # brauch ich das??? ist final_piece nicht für unmake move, was ich schon habe?
+                                # final_piece = self.squares[possible_move_rank][possible_move_file].piece
+                                # final_pos = Square(possible_move_rank, possible_move_file, final_piece)
+                                if possible_move_rank == square[0] and possible_move_file == square[1]:
+                                    initial_pos = Square(rank, file)
+                                    final_piece = self.squares[possible_move_rank][possible_move_file].piece
+                                    final_pos = Square(possible_move_rank, possible_move_file, final_piece)
+                                    move = Move(initial_pos, final_pos)
                                     valid_moves.append(move)
-                            else:
-                                valid_moves.append(move)
 
+            # please add special case en passant and check whether the pawn that being killed is a pinned piece
             if self.last_move is not None:
                 last_initial = self.last_move.initial_square
                 last_final = self.last_move.final_square
@@ -614,14 +613,15 @@ class Board:
                         for possible_move_file in possible_move_files:
                             if Square.in_range(possible_move_rank, possible_move_file):
                                 if self.squares[rank][possible_move_file].piece == self.last_piece:
-                                    initial_pos = Square(rank, file)
-                                    final_piece = self.squares[possible_move_rank][possible_move_file].piece
-                                    final_pos = Square(possible_move_rank, possible_move_file, final_piece)
-                                    move = Move(initial_pos, final_pos)
-
-                                    if not self.in_check(piece, move):
-                                        valid_moves.append(move)
-                                        piece.en_passant = True
+                                    for attacking_pieces in self.enemy_checking_squares:
+                                        for square in attacking_pieces:
+                                            if possible_move_rank == square[0] and possible_move_file == square[1]:
+                                                initial_pos = Square(rank, file)
+                                                final_piece = self.squares[possible_move_rank][possible_move_file].piece
+                                                final_pos = Square(possible_move_rank, possible_move_file, final_piece)
+                                                move = Move(initial_pos, final_pos)
+                                                valid_moves.append(move)
+                                                piece.en_passant = True
 
         def knight_moves():
             possible_moves = [
@@ -635,19 +635,26 @@ class Board:
                 (rank - 2, file - 1)
             ]
 
+            for square in self.pinned_squares:
+                if rank == square[0] and file == square[1]:
+                    return
+
             for move in possible_moves:
                 move_rank, move_file = move
-
                 if Square.in_range(move_rank, move_file):
-                    if self.squares[move_rank][move_file].no_friendly_fire(piece.color):
-                        final_piece = self.squares[move_rank][move_file].piece
-                        move = Move(Square(rank, file), Square(move_rank, move_file, final_piece))
-                        if not self.in_check(piece, move):
-                            valid_moves.append(move)
-                        else:
-                            break
+                    if self.squares[move_rank][move_file].no_friendly_fire(color):
+                        for attacking_pieces in self.enemy_checking_squares:
+                            for square in attacking_pieces:
+                                if move_rank == square[0] and move_file == square[1]:
+                                    final_piece = self.squares[move_rank][move_file].piece
+                                    move = Move(Square(rank, file), Square(move_rank, move_file, final_piece))
+                                    valid_moves.append(move)
 
         def strait_line_moves(increments):
+            for square in self.pinned_squares:
+                if rank == square[0] and file == square[1]:
+                    return
+
             for increment in increments:
                 rank_inc, file_inc = increment
                 possible_move_rank = rank + rank_inc
@@ -656,20 +663,21 @@ class Board:
                 while True:
                     if Square.in_range(possible_move_rank, possible_move_file):
 
-                        initial = Square(rank, file)
-                        final_piece = self.squares[possible_move_rank][possible_move_file].piece
-                        final = Square(possible_move_rank, possible_move_file, final_piece)
-                        move = Move(initial, final)
+                        for attacking_pieces in self.enemy_checking_squares:
+                            for square in attacking_pieces:
+                                if possible_move_rank == square[0] and possible_move_file == square[1]:
+                                    initial = Square(rank, file)
+                                    final_piece = self.squares[possible_move_rank][possible_move_file].piece
+                                    final = Square(possible_move_rank, possible_move_file, final_piece)
+                                    move = Move(initial, final)
 
-                        if self.squares[possible_move_rank][possible_move_file].occupied_by_noone():
-                            if not self.in_check(piece, move):
-                                valid_moves.append(move)
-                        elif self.squares[possible_move_rank][possible_move_file].occupied_by_opponent(piece.color):
-                            if not self.in_check(piece, move):
-                                valid_moves.append(move)
-                            break
-                        elif self.squares[possible_move_rank][possible_move_file].occupied_by_teammate(piece.color):
-                            break
+                                    if self.squares[possible_move_rank][possible_move_file].occupied_by_noone():
+                                        valid_moves.append(move)
+                                    elif self.squares[possible_move_rank][possible_move_file].occupied_by_opponent(color):
+                                        valid_moves.append(move)
+                                        break
+                                    elif self.squares[possible_move_rank][possible_move_file].occupied_by_teammate(color):
+                                        break
                     else:
                         break
 
@@ -691,7 +699,7 @@ class Board:
             for move in moves:
                 possible_move_rank, possible_move_file = move
                 if Square.in_range(possible_move_rank, possible_move_file):
-                    if self.squares[possible_move_rank][possible_move_file].no_friendly_fire(piece.color):
+                    if self.squares[possible_move_rank][possible_move_file].no_friendly_fire(color):
                         if self.enemy_attacking_squares[possible_move_rank][possible_move_file] == 0:
 
                             initial = Square(self.king_rank, self.king_file)
@@ -699,7 +707,7 @@ class Board:
                             move = Move(initial, final)
                             valid_moves.append(move)
 
-            if not piece.moved:
+            if not self.squares[self.king_rank][self.king_file].piece.moved:
                 left_rook = self.squares[self.king_rank][0].piece
                 if isinstance(left_rook, Rook) and not left_rook.moved:
                     for c in range(1, 4):
@@ -743,13 +751,13 @@ class Board:
                             valid_moves.append(move_king)
 
         valid_moves = []
-
-        block_squares = set.intersection(*self.enemy_checking_squares)
-        if not block_squares:
-            # there are no squares that could prevent the king of being in check when moving a piece to that square
-            # thus the king must be moved since the king is probably attacked by multiple pieces
-            # no move has the ability to capture these pieces all at once or to block all their attacking paths at once
-            return king_moves()
+        if len(self.enemy_checking_squares) > 1:
+            # the king is attacked by multiple pieces
+            #  so no piece has the ability to capture all checking pieces in one move
+            #  or to block all their attacking paths at once
+            # --> the king HAS to move, meaning we can only return his valid moves
+            king_moves()
+            return valid_moves
         for rank in range(ranks):
             for file in range(files):
                 if self.squares[rank][file].occupied_by_teammate(color):
@@ -889,8 +897,9 @@ class Board:
                         if possible_move_rank == self.king_rank and possible_move_file == self.king_file:
                             print('error, for some reason one king is in check of the other (ai valid moves)')
 
-        self.enemy_attacking_squares = []  # clear list
+        self.enemy_attacking_squares = [[0, 0, 0, 0, 0, 0, 0, 0] for rank in range(ranks)]  # clear list
         self.enemy_checking_squares = []
+        self.pinned_squares = []
         self.king_rank = 'no enemy king found (enemy attacking moves)'
         self.king_file = 'no enemy king found (enemy attacking moves)'
         for rank in range(ranks):
@@ -958,6 +967,8 @@ class Board:
                             for promotion_piece in promotion_pieces:
                                 move = Move(initial_pos, final_pos, promotion_piece)
                                 valid_moves.append(move)
+                        else:
+                            valid_moves.append(move)
 
                     # pawn is blocked by piece
                     else:
@@ -982,6 +993,8 @@ class Board:
                             for promotion_piece in promotion_pieces:
                                 move = Move(initial_pos, final_pos, promotion_piece)
                                 valid_moves.append(move)
+                        else:
+                            valid_moves.append(move)
 
             if self.last_move is not None:
                 last_initial = self.last_move.initial_square
