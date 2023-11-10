@@ -16,7 +16,7 @@ from classes.move import *
 from classes.sound import *
 from classes.AI import *
 
-
+print('changes recieved? main.py')
 pygame.init()
 screen_x = 1920
 screen_y = 1080
