@@ -132,7 +132,7 @@ class AI:
                 board.ai_move(piece, move, promotion_piece)
 
         def play_interstellar():
-            evaluation, final_move = self.minimax(board, 4, -math.inf, math.inf, True)
+            evaluation, final_move = self.minimax_2(board, 4, -math.inf, math.inf, True)
 
             print(' ')
             print(f'minimax count: {self.minimax_count}')
@@ -161,6 +161,11 @@ class AI:
             print(f'alpha beta pruning count: {self.alpha_beta_pruning_count}')
             print(f'max_player pruning count: {self.max_pruning_count}')
             print(f'min_player pruning count: {self.min_pruning_count}')
+            print(' ')
+            print(f'this is the final eval: {evaluation}')
+            print(f'this is the final move: {final_move}')
+            print(f'initial sq: ({final_move.initial_square.rank}, {final_move.initial_square.file}) final sq: '
+                  f'({final_move.final_square.rank}, {final_move.final_square.file})')
 
             piece = board.squares[final_move.initial_square.rank][final_move.initial_square.file].piece
 
@@ -205,6 +210,7 @@ class AI:
 
         self.minimax_count += 1
 
+        # board.game_end still fucking slow
         if board.game_end_minimax(player_color, max_player):
             return board.evaluation, best_move
         elif depth == 0:
@@ -219,7 +225,7 @@ class AI:
                 piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
 
                 board.ai_move_simulation(piece, move, True)
-                evaluation = self.minimax(board, depth - 1, alpha, beta, False)
+                evaluation = self.minimax_improved_2(board, depth - 1, alpha, beta, False)
                 board.unmake_move(piece, move)
 
                 max_eval = max(max_eval, evaluation[0])
@@ -238,11 +244,11 @@ class AI:
             min_eval = math.inf
             min_move = math.inf
 
-            for move in board.calculate_all_valid_moves(player_color):
+            for move in board.get_valid_moves(player_color):
                 piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
 
                 board.ai_move_simulation(piece, move, True)
-                evaluation = self.minimax(board, depth - 1, alpha, beta, True)
+                evaluation = self.minimax_improved_2(board, depth - 1, alpha, beta, True)
                 board.unmake_move(piece, move)
 
                 min_eval = min(min_eval, evaluation[0])
@@ -291,7 +297,7 @@ class AI:
                 print(f'{player_color} move: {piece.name} to ({move.final_square.rank, move.final_square.file})')
 
                 board.ai_move_simulation(piece, move, True)
-                evaluation = self.minimax(board, depth - 1, alpha, beta, False)
+                evaluation = self.minimax_improved(board, depth - 1, alpha, beta, False)
                 board.unmake_move(piece, move)
 
                 max_eval = max(max_eval, evaluation[0])
@@ -319,14 +325,14 @@ class AI:
             min_eval = math.inf
             min_move = math.inf
 
-            for move in board.calculate_all_valid_moves(player_color):
+            for move in board.get_valid_moves(player_color):
                 piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
 
                 print(f'depth: {depth}')
                 print(f'{player_color} move: {piece.name if piece.name else None} to ({move.final_square.rank, move.final_square.file})')
 
                 board.ai_move_simulation(piece, move, True)
-                evaluation = self.minimax(board, depth - 1, alpha, beta, True)
+                evaluation = self.minimax_improved(board, depth - 1, alpha, beta, True)
                 board.unmake_move(piece, move)
 
                 min_eval = min(min_eval, evaluation[0])
@@ -433,7 +439,7 @@ class AI:
                   f' to ({best_min_move.final_square.rank, best_min_move.final_square.file})')
             return min_eval, best_min_move
 
-    def minimax_copy_2(self, board, depth, alpha, beta, max_player, best_move=Move((7, 7), (7, 8))):
+    def minimax_2(self, board, depth, alpha, beta, max_player, best_move='000000000 error 00000000'):
 
         if max_player:
             player_color = self.color
@@ -443,18 +449,23 @@ class AI:
             else:
                 player_color = 'white'
 
-        if depth == 0 or board.game_end_minimax(player_color):
-            return board.evaluate_position(player_color), best_move
+        self.minimax_count += 1
+
+        if board.game_end_minimax(player_color, max_player):
+            return board.evaluation, best_move
+        elif depth == 0:
+            board.evaluate_position(player_color)
+            return board.evaluation, best_move
 
         if max_player:
             max_eval = -math.inf
             max_move = -math.inf
 
-            for move in board.get_movess(player_color):
+            for move in board.calculate_all_valid_moves(player_color):
                 piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
 
-                board.ai_move_simulation(piece, move, self.promotion_pieces[0], True)
-                evaluation = self.minimax(board, depth - 1, alpha, beta, False)
+                board.ai_move_simulation(piece, move, True)
+                evaluation = self.minimax_2(board, depth - 1, alpha, beta, False)
                 board.unmake_move(piece, move)
 
                 max_eval = max(max_eval, evaluation[0])
@@ -464,6 +475,8 @@ class AI:
 
                 alpha = max(alpha, evaluation[0])
                 if beta <= alpha:
+                    self.alpha_beta_pruning_count += 1
+                    self.max_pruning_count += 1
                     break
             return max_eval, best_max_move
 
@@ -471,226 +484,24 @@ class AI:
             min_eval = math.inf
             min_move = math.inf
 
-            for move in board.get_movess(player_color):
+            for move in board.calculate_all_valid_moves(player_color):
                 piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
 
-                board.ai_move_simulation(piece, move, self.promotion_pieces[0], True)
-                evaluation = self.minimax(board, depth - 1, alpha, beta, True)
+                board.ai_move_simulation(piece, move, True)
+                evaluation = self.minimax_2(board, depth - 1, alpha, beta, True)
                 board.unmake_move(piece, move)
 
                 min_eval = min(min_eval, evaluation[0])
-
                 if min_eval < min_move:
                     min_move = min_eval
                     best_min_move = move
 
                 beta = min(beta, evaluation[0])
                 if beta <= alpha:
+                    self.alpha_beta_pruning_count += 1
+                    self.min_pruning_count += 1
                     break
             return min_eval, best_min_move
 
-    def minimax_copy_3(self, board, depth, alpha, beta, max_player, best_move=Move((7, 7), (7, 8))):
-
-        if max_player:
-            player_color = self.color
-        else:
-            if self.color == 'white':
-                player_color = 'black'
-            else:
-                player_color = 'white'
-
-        if depth == 0 or board.game_end_minimax(player_color):
-            return board.evaluate_position(player_color), best_move
-
-        if max_player:
-            max_eval = -math.inf
-            max_move = -math.inf
-
-            for move in board.get_movess(player_color):
-                piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
-
-                print(piece.name)
-                print(f'move self: ({move.initial_square.rank}, {move.initial_square.file}) to ({move.final_square.rank}, {move.final_square.file})')
-
-                board.ai_move(piece, move, self.promotion_pieces[0], True)
-                evaluation = self.minimax(board, depth - 1, alpha, beta, False)
-                board.unmake_move(piece, move)
-
-                print(f'max eval : {max_eval}, evaluation: {evaluation}')
-                max_eval = max(max_eval, evaluation)
-                if max_eval > max_move:
-                    max_move = max_eval
-                    best_max_move = move
-
-                alpha = max(alpha, evaluation)
-                if beta <= alpha:
-                    break
-            return max_eval, best_max_move
-
-        else:
-            min_eval = math.inf
-
-            for move in board.get_movess(player_color):
-                piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
-
-                print(piece.name)
-                print(f'move enemy: ({move.initial_square.rank}, {move.initial_square.file}) to ({move.final_square.rank}, {move.final_square.file})')
-
-                board.ai_move(piece, move, self.promotion_pieces[0], True)
-                evaluation = self.minimax(board, depth - 1, alpha, beta, True)[0]
-                board.unmake_move(piece, move)
-
-                print(f'min eval : {min_eval}, evaluation: {evaluation}')
-                min_eval = min(min_eval, evaluation)
-                beta = min(beta, evaluation)
-                if beta <= alpha:
-                    break
-            return min_eval
-
-    def minimax_copy_4(self, board, depth, alpha, beta, max_player, best_move=Move((7, 7), (7, 8))):
-
-        print(' ')
-        print('minimax starting')
-
-        if max_player:
-            player_color = self.color
-        else:
-            if self.color == 'white':
-                player_color = 'black'
-            else:
-                player_color = 'white'
-
-        if depth == 0 or board.game_end_minimax(player_color):
-            return board.evaluate_position(player_color), best_move
-
-        if max_player:
-            max_eval = -math.inf
-            max_move = -math.inf
-
-            for move in board.get_movess(player_color):
-                print(f'move self: ({move.initial_square.rank}, {move.initial_square.file}) to ({move.final_square.rank}, {move.final_square.file})')
-                piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
-                print(piece.name)
-
-                board.ai_move(piece, move, self.promotion_pieces[0], True)
-                evaluation = self.minimax(board, depth - 1, alpha, beta, False)
-                board.unmake_move(piece, move)
-
-                print(f'max eval : {max_eval}, evaluation: {evaluation}')
-                max_eval = max(max_eval, evaluation)
-                print('max eval and move')
-                print(max_eval)
-                print(max_move)
-                if max_eval > max_move:
-                    max_move = max_eval
-                    best_max_move = move
-                    print(best_max_move)
-
-                alpha = max(alpha, evaluation)
-                if beta <= alpha:
-                    break
-            return max_eval, best_max_move
-
-        else:
-            min_eval = math.inf
-
-            for move in board.get_movess(player_color):
-                print(f'move enemy: ({move.initial_square.rank}, {move.initial_square.file}) to ({move.final_square.rank}, {move.final_square.file})')
-                piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
-                print(piece.name)
-
-                board.ai_move(piece, move, self.promotion_pieces[0], True)
-                evaluation = self.minimax(board, depth - 1, alpha, beta, True)[0]
-                board.unmake_move(piece, move)
-
-                min_eval = min(min_eval, evaluation)
-                beta = min(beta, evaluation)
-                if beta <= alpha:
-                    break
-            return min_eval
-
-    def minomax(self, board, depth, alpha, beta, max_player, save_move, data):
-        if max_player:
-            player_color = self.color
-        else:
-            if self.color == 'white':
-                player_color = 'black'
-            else:
-                player_color = 'white'
-
-        if depth == 0 or board.game_end_minimax(player_color):
-            data[1] = board.evaluate_position(player_color)
-            return data
-
-        if max_player:
-            max_eval = -math.inf
-            for rank in range(ranks):
-                for file in range(files):
-                    if board.squares[rank][file].occupied_by_teammate(player_color):
-                        piece = board.squares[rank][file].piece
-                        board.calculate_valid_moves(piece, rank, file, bool=True)
-                        for move in piece.moves:
-                            if save_move:
-                                print(' ')
-                                print(f'max eval: {data[1]}')
-                                print(' ')
-                            print(' ')
-                            print(player_color, depth)
-                            print(f'current eval: {max_eval}')
-                            print(f'data eval: {data[1]}')
-                            print(f'calc eval of move self (max) ({move.initial_square.rank}, {move.initial_square.file}) to ({move.final_square.rank}, {move.final_square.file})')
-                            # wie machen wir das mit der promotion????
-                            board.ai_move(piece, move, self.promotion_pieces[0], True)
-                            evaluation = self.minimax(board, depth - 1, alpha, beta, False, False, data)[1]
-                            if save_move:
-                                if not data[0]:
-                                    data[0] = [piece, move, evaluation]
-                                print(evaluation)
-                                print(data[1])
-                                if evaluation >= max_eval:
-                                    if evaluation > data[0][2]:
-                                        print('new data')
-                                        data = [[], 0]
-                                        data[1] = evaluation
-                                        data[0] = [piece, move, evaluation]
-                                    elif evaluation == data[0][2]:
-                                        print('add data')
-                                        data[0].append([piece, move, evaluation])
-                            board.unmake_move(piece, move)
-                            max_eval = max(max_eval, evaluation)
-
-                            print(f'winning eval: {max_eval}')
-
-                            alpha = max(alpha, evaluation)
-                            if beta <= alpha:
-                                break
-            return data
-
-        else:
-            min_eval = math.inf
-
-            for rank in range(ranks):
-                for file in range(files):
-                    if board.squares[rank][file].occupied_by_teammate(player_color):
-                        piece = board.squares[rank][file].piece
-                        board.calculate_valid_moves(piece, rank, file, bool=True)
-                        for move in piece.moves:
-                            print(' ')
-                            print(player_color, depth)
-                            print(f'current eval: {min_eval}')
-                            print(f'data eval: {data[1]}')
-                            print(f'calc eval of move enemy (min) ({move.initial_square.rank}, {move.initial_square.file}) to ({move.final_square.rank}, {move.final_square.file})')
-                            board.ai_move(piece, move, self.promotion_pieces[0], True)
-                            evaluation = self.minimax(board, depth - 1, alpha, beta, True, False, data)[1]
-                            board.unmake_move(piece, move)
-
-                            min_eval = min(min_eval, evaluation)
-
-                            print(f'winning eval: {min_eval}')
-
-                            beta = min(beta, evaluation)
-                            if beta <= alpha:
-                                break
-            return data
 
 

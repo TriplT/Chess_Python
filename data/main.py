@@ -16,7 +16,6 @@ from classes.move import *
 from classes.sound import *
 from classes.AI import *
 
-print('changes recieved? main.py')
 pygame.init()
 screen_x = 1920
 screen_y = 1080
@@ -41,7 +40,7 @@ def main():
         'AI annihilator'
     '''
 
-    ai_1 = AI('i', 0, 1, None)
+    ai_1 = AI('interstellar calculator', 0, 1, None)
     ai_2 = AI('i', 0, 1, None)
 
     while True:
