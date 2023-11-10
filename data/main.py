@@ -41,8 +41,8 @@ def main():
         'AI annihilator'
     '''
 
-    ai_1 = AI('random test', 0, 1, None)
-    ai_2 = AI('random test', 0, 1, None)
+    ai_1 = AI('i', 0, 1, None)
+    ai_2 = AI('i', 0, 1, None)
 
     while True:
         screen.fill((0, 0, 0))
@@ -72,9 +72,6 @@ def main():
                     clicked_file = int((dragger.mouseX - (screen_x // 2 - 4 * square_size)) // square_size)
                     clicked_rank = int((dragger.mouseY - (screen_y // 2 - 4 * square_size)) // square_size)
 
-                    for move in board.get_valid_moves(game.player):
-                        print(f'move from: ({move.initial_square.rank}, {move.initial_square.file}) '
-                              f'to ({move.final_square.rank}, {move.final_square.file})')
                     if not board.game_ended:
 
                         if board.squares[clicked_rank][clicked_file].no_friendly_fire(game.player) and dragger.clicked:
