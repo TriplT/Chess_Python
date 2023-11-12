@@ -20,25 +20,33 @@ class Board:
     last_eaten_piece = []
 
     def __init__(self):
+        # chess board representation
         self.squares = [[0, 0, 0, 0, 0, 0, 0, 0] for rank in range(ranks)]
+
+        # variables for get_valid_moves and ai in general
         self.enemy_attacking_squares = [[0, 0, 0, 0, 0, 0, 0, 0] for rank in range(ranks)]
         self.enemy_checking_squares = []
-        self.king_must_move = False
         self.pinned_squares = []
+        self.king_must_move = False
         self.king_rank = None
         self.king_file = None
+        self.ai_game_ended = False
+        self.evaluation = None
+
         self.move_played = False
-        self.move_counter = 0  # 50 move-rule
-        self.last_num_of_pieces = 0  # 50 move-rule
+        self.move_counter = 0
+
+        self.last_piece = None
         self.last_move = None
         self.last_white_move = None
         self.last_black_move = None
-        self.repetition_counter = 0
-        self.last_piece = None
-        self.win_message = False
-        self.evaluation = None
-        self.game_ended = False
         self.current_moves = []
+
+        self.last_num_of_pieces = 0  # 50 move-rule, ineffizient?
+        self.repetition_counter = 0
+        self.game_ended = False
+        self.win_message = False
+
         self.create_squares()
         self.add_startposition('white')
         self.add_startposition('black')
@@ -286,81 +294,6 @@ class Board:
         self.squares[move.final_square.rank][move.final_square.file].piece = final_pos_piece
         return False
 
-    def game_end_minimax(self, color, max_player):
-        checkmate = False
-        stalemate = True
-        piece_list = []
-        insufficient_material = False
-
-        for rank in range(ranks):
-            for file in range(files):
-
-                p = self.squares[rank][file].piece
-                if self.squares[rank][file].occupied():
-                    piece_list.append(p)
-
-                # checkmate and stalemate
-                if self.squares[rank][file].occupied_by_teammate(color):
-                    self.calculate_valid_moves(p, rank, file, bool=True)
-                    if p.moves:
-                        stalemate = False
-                    p.moves = []
-
-                if self.squares[rank][file].occupied_by_opponent(color):
-                    self.calculate_valid_moves(p, rank, file, bool=True)
-                    for move in p.moves:
-                        if isinstance(self.squares[move.final_square.rank][move.final_square.file].piece, King):
-                            checkmate = True
-
-        knight_counter = 0
-        bishop_counter = 0
-
-        if len(piece_list) == 2:
-            insufficient_material = True
-        elif len(piece_list) == 3:
-            for piece in piece_list:
-                if isinstance(piece, Bishop) or isinstance(piece, Knight):
-                    insufficient_material = True
-        elif len(piece_list) == 4:
-            for piece in piece_list:
-                if isinstance(piece, Knight):
-                    knight_counter += 1
-                elif isinstance(piece, Bishop):
-                    bishop_counter += 1
-                    color = piece.color
-                    if bishop_counter == 2 and not color == piece.color:
-                        insufficient_material = True
-            if knight_counter == 2 or (bishop_counter == 1 and knight_counter == 1):
-                insufficient_material = True
-
-        if len(piece_list) != self.last_num_of_pieces:
-            self.last_num_of_pieces = len(piece_list)
-            self.move_counter = 0
-
-        if checkmate and stalemate:
-            print('CHECKMATE')
-            # calculates worth of checkmate decreasing in value when it takes more moves
-            if max_player:
-                self.evaluation = - 100000.0 + self.move_counter
-            else:
-                self.evaluation = 100000.0 - self.move_counter
-            return True
-        elif insufficient_material:
-            self.evaluation = 0.0
-            return True
-        elif self.repetition_counter == 4:
-            self.evaluation = 0.0
-            return True
-        elif self.move_counter == 50:
-            self.evaluation = 0.0
-            return True
-        elif stalemate:
-            print('ghghghghgh')
-            self.evaluation = 0.0
-            return True
-
-        return False
-
     def game_end(self, color):
         # stalemate
         checkmate = False
@@ -543,11 +476,60 @@ class Board:
 
         self.squares[rank_piece][3] = Square(rank_piece, 3, Queen(color))
 
-    def get_valid_moves(self, color):
+    # improvable, color is being used, its buggy
+    def game_end_minimax(self, color):
+        piece_list = []
+        insufficient_material = False
+
+        for rank in range(ranks):
+            for file in range(files):
+
+                p = self.squares[rank][file].piece
+                if self.squares[rank][file].occupied():
+                    piece_list.append(p)
+
+        knight_counter = 0
+        bishop_counter = 0
+
+        if len(piece_list) == 2:
+            insufficient_material = True
+        elif len(piece_list) == 3:
+            for piece in piece_list:
+                if isinstance(piece, Bishop) or isinstance(piece, Knight):
+                    insufficient_material = True
+        elif len(piece_list) == 4:
+            for piece in piece_list:
+                if isinstance(piece, Knight):
+                    knight_counter += 1
+                elif isinstance(piece, Bishop):
+                    bishop_counter += 1
+                    color = piece.color
+                    if bishop_counter == 2 and not color == piece.color:
+                        insufficient_material = True
+            if knight_counter == 2 or (bishop_counter == 1 and knight_counter == 1):
+                insufficient_material = True
+
+        if len(piece_list) != self.last_num_of_pieces:
+            self.last_num_of_pieces = len(piece_list)
+            self.move_counter = 0
+
+        if insufficient_material:
+            self.evaluation = 0.0
+            self.ai_game_ended = True
+        elif self.repetition_counter >= 4:
+            self.evaluation = 0.0
+            self.ai_game_ended = True
+        elif self.move_counter == 50:
+            self.evaluation = 0.0
+            self.ai_game_ended = True
+
+    # move the functions directly in here. you can then remove the parameters of check valid moves and enemy attack
+    def get_valid_moves(self, color, max_player):
+
         self.calculate_enemy_attacking_moves('white' if color == 'black' else 'black')
         if self.enemy_checking_squares:
             # because the king is in check there will only be moves calculated that put the king out of check
-            return self.in_check_valid_moves(color)
+            return self.in_check_valid_moves(color, max_player)
         else:
             # because the king is NOT in check moves can be calculated easily
             return self.no_check_valid_moves(color)
@@ -739,7 +721,7 @@ class Board:
                             (0, -1),
                             (1, 0)])
 
-    def in_check_valid_moves(self, color):
+    def in_check_valid_moves(self, color, max_player):
         # WAS HT DAS AUF SICH MIT DEM FINAL PIECE final(rank, file, FINAL PIECE) ?????
         def pawn_moves():
             steps = 1 if piece.moved else 2
@@ -951,8 +933,16 @@ class Board:
             # so no piece has the ability to capture all checking pieces in one move
             # or to block all their attacking paths at once
             # --> the king HAS to move, meaning we can only return his valid moves
+            # calculate checkmate
             king_moves()
+            if not valid_moves:
+                self.ai_game_ended = True
+                if max_player:
+                    self.evaluation = - 10000.0 + self.move_counter
+                else:
+                    self.evaluation = 10000.0 - self.move_counter
             return valid_moves
+
         for rank in range(ranks):
             for file in range(files):
                 if self.squares[rank][file].occupied_by_teammate(color):
@@ -989,6 +979,13 @@ class Board:
                             (0, -1),
                             (1, 0)])
 
+        # calculate checkmate
+        if not valid_moves:
+            self.ai_game_ended = True
+            if max_player:
+                self.evaluation = - 10000.0 + self.move_counter
+            else:
+                self.evaluation = 10000.0 - self.move_counter
         return valid_moves
 
     def no_check_valid_moves(self, color):
@@ -1124,6 +1121,7 @@ class Board:
                 if Square.in_range(possible_move_rank, possible_move_file):
                     if self.squares[possible_move_rank][possible_move_file].no_friendly_fire(color):
                         if self.enemy_attacking_squares[possible_move_rank][possible_move_file] == 0:
+
                             initial = Square(self.king_rank, self.king_file)
                             final = Square(possible_move_rank, possible_move_file)
                             move = Move(initial, final)
@@ -1209,6 +1207,11 @@ class Board:
                             (0, 1),
                             (0, -1),
                             (1, 0)])
+
+        # calculate stalemate
+        if not valid_moves:
+            self.ai_game_ended = True
+            self.evaluation = 0
         return valid_moves
 
     def calculate_valid_moves(self, piece, rank, file, bool):

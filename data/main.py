@@ -40,7 +40,7 @@ def main():
         'AI annihilator'
     '''
 
-    ai_1 = AI('interstellar calculator', 0, 1, None)
+    ai_1 = AI('i', 0, 1, None)
     ai_2 = AI('i', 0, 1, None)
 
     while True:

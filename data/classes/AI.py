@@ -154,7 +154,7 @@ class AI:
             return True
 
         def play_interstellar_improved():
-            evaluation, final_move = self.minimax_improved_2(board, 4, -math.inf, math.inf, True)
+            evaluation, final_move = self.minimax_ascended(board, 6, -math.inf, math.inf, True)
 
             print(' ')
             print(f'minimax count: {self.minimax_count}')
@@ -168,6 +168,11 @@ class AI:
                   f'({final_move.final_square.rank}, {final_move.final_square.file})')
 
             piece = board.squares[final_move.initial_square.rank][final_move.initial_square.file].piece
+
+            self.minimax_count = 0
+            self.alpha_beta_pruning_count = 0
+            self.max_pruning_count = 0
+            self.min_pruning_count = 0
 
             if final_move:
                 board.ai_move(piece, final_move, False)
@@ -197,6 +202,74 @@ class AI:
 
         if engine == 'AI annihilator':  # best engine-like engine (or is it?)
             play_random()
+
+    def minimax_ascended(self, board, depth, alpha, beta, max_player, best_move='000000000 error 00000000'):
+
+        if max_player:
+            player_color = self.color
+        else:
+            if self.color == 'white':
+                player_color = 'black'
+            else:
+                player_color = 'white'
+
+        self.minimax_count += 1
+
+        valid_moves = board.get_valid_moves(player_color, max_player)
+        board.game_end_minimax(player_color)
+
+        if board.ai_game_ended:
+            board.ai_game_ended = False
+            return board.evaluation, best_move
+        elif depth == 0:
+            board.evaluate_position(player_color)
+            return board.evaluation, best_move
+
+        if max_player:
+            max_eval = -math.inf
+            max_move = -math.inf
+
+            for move in valid_moves:
+                piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
+
+                board.ai_move_simulation(piece, move, True)
+                evaluation = self.minimax_ascended(board, depth - 1, alpha, beta, False)
+                board.unmake_move(piece, move)
+
+                max_eval = max(max_eval, evaluation[0])
+                if max_eval > max_move:
+                    max_move = max_eval
+                    best_max_move = move
+
+                alpha = max(alpha, max_eval)
+                if beta <= alpha:
+                    self.alpha_beta_pruning_count += 1
+                    self.max_pruning_count += 1
+                    break
+            return max_eval, best_max_move
+
+        else:
+            min_eval = math.inf
+            min_move = math.inf
+
+            for move in valid_moves:
+                piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
+
+                board.ai_move_simulation(piece, move, True)
+                evaluation = self.minimax_ascended(board, depth - 1, alpha, beta, True)
+                board.unmake_move(piece, move)
+
+                min_eval = min(min_eval, evaluation[0])
+                if min_eval < min_move:
+                    min_move = min_eval
+                    best_min_move = move
+
+                beta = min(beta, min_eval)
+                if beta <= alpha:
+                    self.alpha_beta_pruning_count += 1
+                    self.min_pruning_count += 1
+                    break
+            return min_eval, best_min_move
 
     def minimax_improved_2(self, board, depth, alpha, beta, max_player, best_move='000000000 error 00000000'):
 
