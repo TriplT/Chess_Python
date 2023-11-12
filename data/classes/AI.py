@@ -6,6 +6,7 @@ from Pycharm_Projects.Chess_Test.data.classes.board import *
 class AI:
 
     promotion_pieces = [Queen, Knight, Bishop, Rook]
+    moves_calculated = 0
 
     def __init__(self, engine, difficulty, depth, color):
         self.engine = engine
@@ -180,6 +181,37 @@ class AI:
                 print('AI MOVE PLAYED')
                 print(' ')
             return True
+
+        def test_all_moves():
+            def calc_mini(maxi, depth):
+                if depth == 0:
+                    return
+
+                if maxi:
+                    player_color = self.color
+                else:
+                    if self.color == 'white':
+                        player_color = 'black'
+                    else:
+                        player_color = 'white'
+
+                valid_moves = board.get_valid_moves(player_color, maxi)
+                for move in valid_moves:
+                    piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
+
+                    board.ai_move_simulation(piece, move, True)
+                    self.moves_calculated += 1
+                    if maxi:
+                        calc_mini(False, depth - 1)
+                    else:
+                        calc_mini(True, depth - 1)
+                    board.unmake_move(piece, move)
+
+            calc_mini(True, 5)
+            print(self.moves_calculated)
+
+        if engine == 'test':
+            test_all_moves()
 
         # engine names
         if engine == 'alea iacta est':  # plays random moves throughout the game

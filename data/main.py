@@ -23,10 +23,13 @@ square_size = 100
 pygame.display.set_caption('Chess')
 clock = pygame.time.Clock()
 test_font = pygame.font.Font(None, 50)
-
 Piece.preload_images()
 global game_mode
-
+# .....
+# sobald du dir sicher sein kannst mit alles valid moves --> castling & en passsant,
+# vergiss nicht en passant pinned piece
+# die AI als 'test' spielen lassen. Die sollte alle moves durchgehen und die menge comparen
+# .....
 
 def main():
     dragger = Dragger()
