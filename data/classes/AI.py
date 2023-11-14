@@ -155,7 +155,7 @@ class AI:
             return True
 
         def play_interstellar_improved():
-            evaluation, final_move = self.minimax_ascended(board, 6, -math.inf, math.inf, True)
+            evaluation, final_move = self.minimax_ascended(board, 4, -math.inf, math.inf, True)
 
             print(' ')
             print(f'minimax count: {self.minimax_count}')
@@ -469,7 +469,7 @@ class AI:
         print(f'minimax initiated; player: {player_color}')
         self.minimax_count += 1
 
-        if board.game_end_minimax(player_color, max_player):
+        if board.game_end_minimax(player_color):
             print(f'GAME ENDED; eval: {board.evaluation}, player: {player_color}, max_player: {max_player}')
             return board.evaluation, best_move
         elif depth == 0:
@@ -556,7 +556,7 @@ class AI:
 
         self.minimax_count += 1
 
-        if board.game_end_minimax(player_color, max_player):
+        if board.game_end_minimax(player_color):
             return board.evaluation, best_move
         elif depth == 0:
             board.evaluate_position(player_color)
