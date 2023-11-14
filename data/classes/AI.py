@@ -1,5 +1,7 @@
 import random
 import math
+import time
+
 from Pycharm_Projects.Chess_Test.data.classes.board import *
 
 
@@ -133,8 +135,10 @@ class AI:
                 board.ai_move(piece, move, promotion_piece)
 
         def play_interstellar():
-            evaluation, final_move = self.minimax_2(board, 4, -math.inf, math.inf, True)
-
+            start = time.time()
+            evaluation, final_move = self.minimax_2(board, 6, -math.inf, math.inf, True)
+            end = time.time()
+            print(f'primate minimax: {end - start}')
             print(' ')
             print(f'minimax count: {self.minimax_count}')
             print(f'alpha beta pruning count: {self.alpha_beta_pruning_count}')
@@ -147,6 +151,11 @@ class AI:
 
             piece = board.squares[final_move.initial_square.rank][final_move.initial_square.file].piece
 
+            self.minimax_count = 0
+            self.alpha_beta_pruning_count = 0
+            self.max_pruning_count = 0
+            self.min_pruning_count = 0
+
             if final_move:
                 board.ai_move(piece, final_move, False)
                 print(' ')
@@ -155,7 +164,10 @@ class AI:
             return True
 
         def play_interstellar_improved():
-            evaluation, final_move = self.minimax_ascended(board, 4, -math.inf, math.inf, True)
+            start = time.time()
+            evaluation, final_move = self.minimax_ascended(board, 6, -math.inf, math.inf, True)
+            end = time.time()
+            print(f'advanced minimax: {end - start}')
 
             print(' ')
             print(f'minimax count: {self.minimax_count}')
