@@ -9,6 +9,8 @@ class AI:
 
     promotion_pieces = [Queen, Knight, Bishop, Rook]
     moves_calculated = 0
+    mother_move = None
+    responses = 0
 
     def __init__(self, engine, difficulty, depth, color):
         self.engine = engine
@@ -136,7 +138,7 @@ class AI:
 
         def play_interstellar():
             start = time.time()
-            evaluation, final_move = self.minimax_2(board, 6, -math.inf, math.inf, True)
+            evaluation, final_move = self.minimax_2(board, 4, -math.inf, math.inf, True)
             end = time.time()
             print(f'primate minimax: {end - start}')
             print(' ')
@@ -165,7 +167,7 @@ class AI:
 
         def play_interstellar_improved():
             start = time.time()
-            evaluation, final_move = self.minimax_ascended(board, 6, -math.inf, math.inf, True)
+            evaluation, final_move = self.minimax_ascended(board, 4, -math.inf, math.inf, True)
             end = time.time()
             print(f'advanced minimax: {end - start}')
 
@@ -195,7 +197,21 @@ class AI:
             return True
 
         def test_all_moves():
-            def calc_mini(maxi, depth):
+            global total_moves
+            total_moves = 0
+            def calc_mini(depth):
+                if depth == 0:
+                    total_moves += 1
+                    return
+
+                for move in board.get_valid_moves(board, self.color):
+                    piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
+
+                    board.ai_move_simulation(piece, move, True)
+                    calc_mini(depth - 1)
+                    board.unmake_move(piece, move)
+                return total_moves
+            def calc_minii(maxi, depth):
                 if depth == 0:
                     return
 
@@ -208,19 +224,29 @@ class AI:
                         player_color = 'white'
 
                 valid_moves = board.get_valid_moves(player_color, maxi)
+                if depth != 3:
+                    print(f'for to ({AI.mother_move.final_square.rank}, {AI.mother_move.final_square.file} there are {len(valid_moves)} responses')
+                    AI.responses += 1
                 for move in valid_moves:
+                    if depth != 1:
+                        AI.mother_move = move
                     piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
 
                     board.ai_move_simulation(piece, move, True)
-                    self.moves_calculated += 1
+                    if depth == 1:
+                        AI.moves_calculated += 1
+                    # print(AI.moves_calculated)
                     if maxi:
                         calc_mini(False, depth - 1)
                     else:
                         calc_mini(True, depth - 1)
                     board.unmake_move(piece, move)
 
-            calc_mini(True, 5)
-            print(self.moves_calculated)
+            print(calc_mini(2))
+            print(f'final moves calculated: {AI.moves_calculated}')
+            print(f'responses: {AI.responses}')
+            while True:
+                x = 45
 
         if engine == 'test':
             test_all_moves()
