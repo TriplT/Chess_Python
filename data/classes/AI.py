@@ -6,6 +6,10 @@ from Pycharm_Projects.Chess_Test.data.classes.board import *
 class AI:
 
     promotion_pieces = [Queen, Knight, Bishop, Rook]
+    count_moves = 0
+    test_moves = []
+    resulting_moves = 0
+    counter = -1
 
     def __init__(self, engine, difficulty, depth, color):
         self.engine = engine
@@ -181,7 +185,67 @@ class AI:
                 print(' ')
             return True
 
+        def move_amount():
+            for move in board.get_valid_moves(self.color, True):
+                print(f'{board.squares[move.initial_square.rank][move.initial_square.file].piece.name} '
+                      f'from ({move.initial_square.rank}, {move.initial_square.file}) '
+                      f'to ({move.final_square.rank}, {move.final_square.file})')
+            print(f'valid_moves: {len(board.get_valid_moves(self.color, True))}')
+            while True:
+                x = 349737
+
+        def test_moves():
+            def calc_moves(turn, depth):
+                if depth == 0:
+
+                    return
+
+                if turn:
+                    player_color = self.color
+                else:
+                    if self.color == 'white':
+                        player_color = 'black'
+                    else:
+                        player_color = 'white'
+
+                valid_moves = board.get_valid_moves(player_color, turn)
+
+                for move in valid_moves:
+                    piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
+
+                    if depth == 2:
+                        AI.resulting_moves = 0
+                        AI.test_moves.append([0, piece, move])
+                        AI.counter += 1
+                    elif depth == 1:
+                        AI.resulting_moves += 1
+                        AI.count_moves += 1
+                        AI.test_moves[AI.counter][0] = AI.resulting_moves
+
+                    board.ai_move_simulation(piece, move, True)
+                    calc_moves(False, depth - 1) if turn else calc_moves(True, depth - 1)
+                    board.unmake_move(piece, move)
+                return
+
+            calc_moves(True, 2)
+            print(f'amount of starting possibilities: {len(AI.test_moves)}')
+            count = 0
+            for move in AI.test_moves:
+                print(f'{move[1]} from ({move[2].initial_square.rank}, {move[2].initial_square.file}) '
+                      f'to ({move[2].final_square.rank}, {move[2].final_square.file}) results in a total of {move[0]} positions')
+                count += move[0]
+            print(f'end result calculated moves: {count}')
+
+            print(f'final moves calculated: {AI.count_moves}')
+            while True:
+                x = 2344
         # engine names
+        if engine == 'amount':  # plays random moves throughout the game
+            move_amount()
+
+        if engine == 'test':  # plays random moves throughout the game
+            test_moves()
+
         if engine == 'alea iacta est':  # plays random moves throughout the game
             play_random()
 
