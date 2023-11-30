@@ -197,20 +197,19 @@ class AI:
             return True
 
         def test_all_moves():
-            global total_moves
-            total_moves = 0
             def calc_mini(depth):
                 if depth == 0:
-                    total_moves += 1
                     return
 
                 for move in board.get_valid_moves(board, self.color):
                     piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
 
                     board.ai_move_simulation(piece, move, True)
+                    if depth ==1:
+                        AI.moves_calculated += 1
                     calc_mini(depth - 1)
                     board.unmake_move(piece, move)
-                return total_moves
+                return
             def calc_minii(maxi, depth):
                 if depth == 0:
                     return
