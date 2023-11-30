@@ -1,16 +1,11 @@
 import random
 import math
-import time
-
 from Pycharm_Projects.Chess_Test.data.classes.board import *
 
 
 class AI:
 
     promotion_pieces = [Queen, Knight, Bishop, Rook]
-    moves_calculated = 0
-    mother_move = None
-    responses = 0
 
     def __init__(self, engine, difficulty, depth, color):
         self.engine = engine
@@ -137,10 +132,8 @@ class AI:
                 board.ai_move(piece, move, promotion_piece)
 
         def play_interstellar():
-            start = time.time()
             evaluation, final_move = self.minimax_2(board, 4, -math.inf, math.inf, True)
-            end = time.time()
-            print(f'primate minimax: {end - start}')
+
             print(' ')
             print(f'minimax count: {self.minimax_count}')
             print(f'alpha beta pruning count: {self.alpha_beta_pruning_count}')
@@ -153,11 +146,6 @@ class AI:
 
             piece = board.squares[final_move.initial_square.rank][final_move.initial_square.file].piece
 
-            self.minimax_count = 0
-            self.alpha_beta_pruning_count = 0
-            self.max_pruning_count = 0
-            self.min_pruning_count = 0
-
             if final_move:
                 board.ai_move(piece, final_move, False)
                 print(' ')
@@ -166,10 +154,7 @@ class AI:
             return True
 
         def play_interstellar_improved():
-            start = time.time()
-            evaluation, final_move = self.minimax_ascended(board, 4, -math.inf, math.inf, True)
-            end = time.time()
-            print(f'advanced minimax: {end - start}')
+            evaluation, final_move = self.minimax_ascended(board, 6, -math.inf, math.inf, True)
 
             print(' ')
             print(f'minimax count: {self.minimax_count}')
@@ -195,61 +180,6 @@ class AI:
                 print('AI MOVE PLAYED')
                 print(' ')
             return True
-
-        def test_all_moves():
-            global total_moves
-            total_moves = 0
-            def calc_mini(depth):
-                if depth == 0:
-                    total_moves += 1
-                    return
-
-                for move in board.get_valid_moves(board, self.color):
-                    piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
-
-                    board.ai_move_simulation(piece, move, True)
-                    calc_mini(depth - 1)
-                    board.unmake_move(piece, move)
-                return total_moves
-            def calc_minii(maxi, depth):
-                if depth == 0:
-                    return
-
-                if maxi:
-                    player_color = self.color
-                else:
-                    if self.color == 'white':
-                        player_color = 'black'
-                    else:
-                        player_color = 'white'
-
-                valid_moves = board.get_valid_moves(player_color, maxi)
-                if depth != 3:
-                    print(f'for to ({AI.mother_move.final_square.rank}, {AI.mother_move.final_square.file} there are {len(valid_moves)} responses')
-                    AI.responses += 1
-                for move in valid_moves:
-                    if depth != 1:
-                        AI.mother_move = move
-                    piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
-
-                    board.ai_move_simulation(piece, move, True)
-                    if depth == 1:
-                        AI.moves_calculated += 1
-                    # print(AI.moves_calculated)
-                    if maxi:
-                        calc_mini(False, depth - 1)
-                    else:
-                        calc_mini(True, depth - 1)
-                    board.unmake_move(piece, move)
-
-            print(calc_mini(2))
-            print(f'final moves calculated: {AI.moves_calculated}')
-            print(f'responses: {AI.responses}')
-            while True:
-                x = 45
-
-        if engine == 'test':
-            test_all_moves()
 
         # engine names
         if engine == 'alea iacta est':  # plays random moves throughout the game
@@ -507,7 +437,7 @@ class AI:
         print(f'minimax initiated; player: {player_color}')
         self.minimax_count += 1
 
-        if board.game_end_minimax(player_color):
+        if board.game_end_minimax(player_color, max_player):
             print(f'GAME ENDED; eval: {board.evaluation}, player: {player_color}, max_player: {max_player}')
             return board.evaluation, best_move
         elif depth == 0:
@@ -594,7 +524,7 @@ class AI:
 
         self.minimax_count += 1
 
-        if board.game_end_minimax(player_color):
+        if board.game_end_minimax(player_color, max_player):
             return board.evaluation, best_move
         elif depth == 0:
             board.evaluate_position(player_color)
