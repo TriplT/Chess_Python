@@ -44,7 +44,7 @@ def main():
         'AI annihilator'
     '''
 
-    ai_2 = AI('test', 0, 1, None)
+    ai_2 = AI('amount', 0, 1, None)
     ai_1 = AI('test', 0, 1, None)
 
     while True:

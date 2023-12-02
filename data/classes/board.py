@@ -436,11 +436,21 @@ class Board:
         else:
             self.evaluation = -round(position_value, 3)
 
-    def add_startpositio(self, color):
+    def add_startposition(self, color):
         if color == 'white':
             rank_pawn, rank_piece = (6, 7)
+            self.squares[5][0] = Square(5, 0, Pawn(color))
         else:
             rank_pawn, rank_piece = (1, 0)
+            self.squares[2][0] = Square(2, 0, Pawn(color))
+
+        self.squares[rank_pawn][1] = Square(rank_pawn, 1, Pawn(color))
+        self.squares[rank_pawn][2] = Square(rank_pawn, 2, Pawn(color))
+        self.squares[rank_pawn][3] = Square(rank_pawn, 3, Pawn(color))
+        self.squares[rank_pawn][4] = Square(rank_pawn, 4, Pawn(color))
+        self.squares[rank_pawn][5] = Square(rank_pawn, 5, Pawn(color))
+        self.squares[rank_pawn][6] = Square(rank_pawn, 6, Pawn(color))
+        self.squares[rank_pawn][7] = Square(rank_pawn, 7, Pawn(color))
 
         self.squares[rank_piece][1] = Square(rank_piece, 1, Knight(color))
         self.squares[rank_piece][6] = Square(rank_piece, 6, Knight(color))
@@ -455,7 +465,7 @@ class Board:
 
         self.squares[rank_piece][3] = Square(rank_piece, 3, Queen(color))
 
-    def add_startposition(self, color):
+    def add_startpositio(self, color):
         if color == 'white':
             rank_pawn, rank_piece = (6, 7)
         else:
@@ -725,7 +735,10 @@ class Board:
     def in_check_valid_moves(self, color, max_player):
         # WAS HT DAS AUF SICH MIT DEM FINAL PIECE final(rank, file, FINAL PIECE) ?????
         def pawn_moves():
-            steps = 1 if piece.moved else 2
+            if (color == 'white' and rank == 6) or (color == 'black' and rank == 2):
+                steps = 2
+            else:
+                steps = 1
 
             # vertical moves
             start = rank + piece.direction
@@ -877,7 +890,8 @@ class Board:
                             move = Move(initial, final)
                             valid_moves.append(move)
 
-            if not self.squares[self.king_rank][self.king_file].piece.moved:
+            if not (color == 'white' and self.king_rank == 7 and self.king_file == 4) \
+                    or not (color == 'black' and self.king_rank == 0 and self.king_file == 4):
                 left_rook = self.squares[self.king_rank][0].piece
                 if isinstance(left_rook, Rook):
                     if not left_rook.moved:
@@ -993,7 +1007,10 @@ class Board:
 
         def pawn_moves():
             promotion_pieces = [Queen, Knight, Bishop, Rook]
-            steps = 1 if piece.moved else 2
+            if (color == 'white' and rank == 6) or (color == 'black' and rank == 2):
+                steps = 2
+            else:
+                steps = 1
 
             # vertical moves
             start = rank + piece.direction
@@ -1127,7 +1144,8 @@ class Board:
                             move = Move(initial, final)
                             valid_moves.append(move)
 
-            if not self.squares[self.king_rank][self.king_file].piece.moved:
+            if not (color == 'white' and self.king_rank == 7 and self.king_file == 4) \
+                    or not (color == 'black' and self.king_rank == 0 and self.king_file == 4):
                 left_rook = self.squares[self.king_rank][0].piece
                 if isinstance(left_rook, Rook):
                     if not left_rook.moved:
