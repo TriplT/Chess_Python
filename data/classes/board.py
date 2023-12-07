@@ -26,7 +26,6 @@ class Board:
         # variables for get_valid_moves and ai in general
         self.enemy_attacking_squares = [[0, 0, 0, 0, 0, 0, 0, 0] for rank in range(ranks)]
         self.enemy_checking_squares = []
-        self.pinned_squares = []
         self.king_must_move = False
         self.king_rank = None
         self.king_file = None
@@ -598,14 +597,16 @@ class Board:
                 # end reached prevents several functions to look out for checks when a blocking piece was already found.
                 # after end reach we're only checking for potential pinned pieces
                 king_reached = False
-                pinned = False
-                temp_pinned_square = None
+                pinning_pieces = 0
+                temp_pinning_squares = [(rank, file)]
                 temp_checking_squares = [[rank, file]]
                 while True:
                     if Square.in_range(possible_move_rank, possible_move_file):
                         if self.squares[possible_move_rank][possible_move_file].occupied_by_noone():
                             if not end_reached:
                                 self.enemy_attacking_squares[possible_move_rank][possible_move_file] = 1
+                            if not king_reached:
+                                temp_pinning_squares.append((possible_move_rank, possible_move_file))
                             if not king_reached and not end_reached:
                                 temp_checking_squares.append([possible_move_rank, possible_move_file])
 
@@ -627,38 +628,38 @@ class Board:
                             # won't get the king out of check
 
                             if possible_move_rank == self.king_rank and possible_move_file == self.king_file:
+                                king_reached = True
+
                                 # enemy attacking squares
                                 if not end_reached:
                                     self.enemy_attacking_squares[possible_move_rank][possible_move_file] = 1
 
+                                # pins
+                                if pinning_pieces == 1:
+                                    self.squares[rank][file].piece.pinned = temp_pinning_squares
+
                                 # enemy checking squares
-                                if not king_reached and not end_reached:
+                                if not end_reached:
                                     if self.enemy_checking_squares:
                                         self.king_must_move = True
                                     else:
                                         self.enemy_checking_squares = temp_checking_squares
-                                    king_reached = True
-
-                                # pins
-                                if pinned and temp_pinned_square:
-                                    self.pinned_squares.append(temp_pinned_square)
-                                else:
-                                    temp_pinned_square = None
 
                             else:
                                 if not end_reached:
                                     self.enemy_attacking_squares[possible_move_rank][possible_move_file] = 1
                                     end_reached = True
 
-                                if not pinned:
-                                    temp_pinned_square = (possible_move_rank, possible_move_file)
-                                    pinned = True
+                                if not king_reached:
+                                    pinning_pieces += 1
 
                         elif self.squares[possible_move_rank][possible_move_file].occupied_by_teammate(color):
                             # we can exclude any vertical/diagonal checks since an enemy piece blocks its own
                             # diagonal/vertical vision
                             end_reached = True
-                            # own pawn should also count as a pinned piece.
+                            if isinstance(self.squares[possible_move_rank][possible_move_file].piece, Pawn):
+                                pass
+                            # enemy pawn should also count as a pinned piece.
                             # special case en passant could raise some errors otherwise
                             # give the en passant function a square (rank, file) and
                             # prevent en passant from being played if it were to kill pawn on square (rank, file)
@@ -691,7 +692,6 @@ class Board:
         self.enemy_attacking_squares = [[0, 0, 0, 0, 0, 0, 0, 0] for rank in range(ranks)]  # clear list
         self.enemy_checking_squares = []
         self.king_must_move = False
-        self.pinned_squares = []
         self.king_rank = 'no enemy king found (calculate enemy attacking moves)'
         self.king_file = 'no enemy king found (calculate enemy attacking moves)'
         for rank in range(ranks):
@@ -739,6 +739,7 @@ class Board:
     def in_check_valid_moves(self, color, max_player=True):
         # WAS HT DAS AUF SICH MIT DEM FINAL PIECE final(rank, file, FINAL PIECE) ?????
         def pawn_moves():
+            promotion_pieces = [Queen, Knight, Bishop, Rook]
             if (color == 'white' and rank == 6) or (color == 'black' and rank == 1):
                 steps = 2
             else:
@@ -757,7 +758,13 @@ class Board:
                                 initial_pos = Square(rank, file)
                                 final_pos = Square(possible_move_rank, file)
                                 move = Move(initial_pos, final_pos)
-                                valid_moves.append(move)
+                                if not piece.pinned or (possible_move_rank, file) in piece.pinned:
+                                    if final_pos.rank == 0 or final_pos.rank == 7:
+                                        for promotion_piece in promotion_pieces:
+                                            move = Move(initial_pos, final_pos, promotion_piece)
+                                            valid_moves.append(move)
+                                    else:
+                                        valid_moves.append(move)
                     # pawn is blocked by piece
                     else:
                         break
@@ -781,7 +788,13 @@ class Board:
                                 final_piece = self.squares[possible_move_rank][possible_move_file].piece
                                 final_pos = Square(possible_move_rank, possible_move_file, final_piece)
                                 move = Move(initial_pos, final_pos)
-                                valid_moves.append(move)
+                                if not piece.pinned or (possible_move_rank, possible_move_file) in piece.pinned:
+                                    if final_pos.rank == 0 or final_pos.rank == 7:
+                                        for promotion_piece in promotion_pieces:
+                                            move = Move(initial_pos, final_pos, promotion_piece)
+                                            valid_moves.append(move)
+                                    else:
+                                        valid_moves.append(move)
 
             # please add special case en passant and check whether the pawn that's being killed is a pinned piece
             if self.last_move is not None:
@@ -799,16 +812,12 @@ class Board:
                                             final_piece = self.squares[possible_move_rank][possible_move_file].piece
                                             final_pos = Square(possible_move_rank, possible_move_file, final_piece)
                                             move = Move(initial_pos, final_pos)
-                                            valid_moves.append(move)
-                                            piece.en_passant = True
+                                            if piece.pinned or (possible_move_rank, possible_move_file) in piece.pinned:
+                                                valid_moves.append(move)
+                                                piece.en_passant = True
 
         def knight_moves():
-            pinned = False
-            for square in self.pinned_squares:
-                if rank == square[0] and file == square[1]:
-                    pinned = True
-
-            if not pinned:
+            if not piece.pinned:
                 possible_moves = [
                     (rank - 2, file + 1),
                     (rank - 1, file + 2),
@@ -831,45 +840,42 @@ class Board:
                                     valid_moves.append(move)
 
         def strait_line_moves(increments):
-            pinned = False
-            for square in self.pinned_squares:
-                if rank == square[0] and file == square[1]:
-                    pinned = True
-            if not pinned:
-                for increment in increments:
-                    rank_inc, file_inc = increment
-                    possible_move_rank = rank + rank_inc
-                    possible_move_file = file + file_inc
+            for increment in increments:
+                rank_inc, file_inc = increment
+                possible_move_rank = rank + rank_inc
+                possible_move_file = file + file_inc
 
-                    while True:
-                        if Square.in_range(possible_move_rank, possible_move_file):
+                while True:
+                    if Square.in_range(possible_move_rank, possible_move_file):
 
-                            if self.squares[possible_move_rank][possible_move_file].occupied_by_noone():
-                                for square in self.enemy_checking_squares:
-                                    if possible_move_rank == square[0] and possible_move_file == square[1]:
-                                        initial = Square(rank, file)
-                                        final_piece = self.squares[possible_move_rank][possible_move_file].piece
-                                        final = Square(possible_move_rank, possible_move_file, final_piece)
-                                        move = Move(initial, final)
+                        if self.squares[possible_move_rank][possible_move_file].occupied_by_noone():
+                            for square in self.enemy_checking_squares:
+                                if possible_move_rank == square[0] and possible_move_file == square[1]:
+                                    initial = Square(rank, file)
+                                    final_piece = self.squares[possible_move_rank][possible_move_file].piece
+                                    final = Square(possible_move_rank, possible_move_file, final_piece)
+                                    move = Move(initial, final)
+                                    if not piece.pinned or (possible_move_rank, possible_move_file) in piece.pinned:
                                         valid_moves.append(move)
 
-                            elif self.squares[possible_move_rank][possible_move_file].occupied_by_opponent(color):
-                                for square in self.enemy_checking_squares:
-                                    if possible_move_rank == square[0] and possible_move_file == square[1]:
-                                        initial = Square(rank, file)
-                                        final_piece = self.squares[possible_move_rank][possible_move_file].piece
-                                        final = Square(possible_move_rank, possible_move_file, final_piece)
-                                        move = Move(initial, final)
+                        elif self.squares[possible_move_rank][possible_move_file].occupied_by_opponent(color):
+                            for square in self.enemy_checking_squares:
+                                if possible_move_rank == square[0] and possible_move_file == square[1]:
+                                    initial = Square(rank, file)
+                                    final_piece = self.squares[possible_move_rank][possible_move_file].piece
+                                    final = Square(possible_move_rank, possible_move_file, final_piece)
+                                    move = Move(initial, final)
+                                    if not piece.pinned or (possible_move_rank, possible_move_file) in piece.pinned:
                                         valid_moves.append(move)
-                                break
-
-                            elif self.squares[possible_move_rank][possible_move_file].occupied_by_teammate(color):
-                                break
-                        else:
                             break
 
-                        possible_move_rank = possible_move_rank + rank_inc
-                        possible_move_file = possible_move_file + file_inc
+                        elif self.squares[possible_move_rank][possible_move_file].occupied_by_teammate(color):
+                            break
+                    else:
+                        break
+
+                    possible_move_rank = possible_move_rank + rank_inc
+                    possible_move_file = possible_move_file + file_inc
 
         def king_moves():
             moves = [
@@ -942,6 +948,7 @@ class Board:
 
         valid_moves = []
         if self.king_must_move:
+            print('king is attacked by multiple pieces --> board.king_must_move (in_check_valid_moves)')
             # the king is attacked by multiple pieces
             # so no piece has the ability to capture all checking pieces in one move
             # or to block all their attacking paths at once
@@ -959,43 +966,38 @@ class Board:
         for rank in range(ranks):
             for file in range(files):
                 if self.squares[rank][file].occupied_by_teammate(color):
-                    pinned = False
-                    for pinned_square in self.pinned_squares:
-                        if rank == pinned_square[0] and file == pinned_square[1]:
-                            pinned = True
-                    if not pinned:
-                        piece = self.squares[rank][file].piece
+                    piece = self.squares[rank][file].piece
 
-                        if isinstance(piece, Pawn):
-                            pawn_moves()
-                        elif isinstance(piece, King):
-                            king_moves()
-                        elif isinstance(piece, Queen):
-                            strait_line_moves([
-                                (-1, 1),
-                                (-1, -1),
-                                (1, -1),
-                                (1, 1),
-                                (-1, 0),
-                                (0, 1),
-                                (0, -1),
-                                (1, 0)
-                            ])
-                        elif isinstance(piece, Bishop):
-                            strait_line_moves([
-                                (-1, 1),
-                                (-1, -1),
-                                (1, -1),
-                                (1, 1)
-                            ])
-                        elif isinstance(piece, Knight):
-                            knight_moves()
-                        elif isinstance(piece, Rook):
-                            strait_line_moves([
-                                (-1, 0),
-                                (0, 1),
-                                (0, -1),
-                                (1, 0)])
+                    if isinstance(piece, Pawn):
+                        pawn_moves()
+                    elif isinstance(piece, King):
+                        king_moves()
+                    elif isinstance(piece, Queen):
+                        strait_line_moves([
+                            (-1, 1),
+                            (-1, -1),
+                            (1, -1),
+                            (1, 1),
+                            (-1, 0),
+                            (0, 1),
+                            (0, -1),
+                            (1, 0)
+                        ])
+                    elif isinstance(piece, Bishop):
+                        strait_line_moves([
+                            (-1, 1),
+                            (-1, -1),
+                            (1, -1),
+                            (1, 1)
+                        ])
+                    elif isinstance(piece, Knight):
+                        knight_moves()
+                    elif isinstance(piece, Rook):
+                        strait_line_moves([
+                            (-1, 0),
+                            (0, 1),
+                            (0, -1),
+                            (1, 0)])
 
         # calculate checkmate
         if not valid_moves:
@@ -1026,13 +1028,13 @@ class Board:
                         initial_pos = Square(rank, file)
                         final_pos = Square(possible_move_rank, file)
                         move = Move(initial_pos, final_pos)
-
-                        if final_pos.rank == 0 or final_pos.rank == 7:
-                            for promotion_piece in promotion_pieces:
-                                move = Move(initial_pos, final_pos, promotion_piece)
+                        if not piece.pinned or (possible_move_rank, file) in piece.pinned:
+                            if final_pos.rank == 0 or final_pos.rank == 7:
+                                for promotion_piece in promotion_pieces:
+                                    move = Move(initial_pos, final_pos, promotion_piece)
+                                    valid_moves.append(move)
+                            else:
                                 valid_moves.append(move)
-                        else:
-                            valid_moves.append(move)
 
                     # pawn is blocked by piece
                     else:
@@ -1052,13 +1054,13 @@ class Board:
                         final_piece = self.squares[possible_move_rank][possible_move_file].piece
                         final_pos = Square(possible_move_rank, possible_move_file, final_piece)
                         move = Move(initial_pos, final_pos)
-
-                        if final_pos.rank == 0 or final_pos.rank == 7:
-                            for promotion_piece in promotion_pieces:
-                                move = Move(initial_pos, final_pos, promotion_piece)
+                        if not piece.pinned or (possible_move_rank, possible_move_file) in piece.pinned:
+                            if final_pos.rank == 0 or final_pos.rank == 7:
+                                for promotion_piece in promotion_pieces:
+                                    move = Move(initial_pos, final_pos, promotion_piece)
+                                    valid_moves.append(move)
+                            else:
                                 valid_moves.append(move)
-                        else:
-                            valid_moves.append(move)
 
             if self.last_move is not None:
                 last_initial = self.last_move.initial_square
@@ -1073,30 +1075,31 @@ class Board:
                                     final_piece = self.squares[possible_move_rank][possible_move_file].piece
                                     final_pos = Square(possible_move_rank, possible_move_file, final_piece)
                                     move = Move(initial_pos, final_pos)
-
-                                    valid_moves.append(move)
-                                    piece.en_passant = True
+                                    if not piece.pinned or (possible_move_rank, possible_move_file) in piece.pinned:
+                                        valid_moves.append(move)
+                                        piece.en_passant = True
 
         def knight_moves():
-            possible_moves = [
-                (rank - 2, file + 1),
-                (rank - 1, file + 2),
-                (rank + 1, file + 2),
-                (rank + 2, file + 1),
-                (rank + 2, file - 1),
-                (rank + 1, file - 2),
-                (rank - 1, file - 2),
-                (rank - 2, file - 1)
-            ]
+            if not piece.pinned:
+                possible_moves = [
+                    (rank - 2, file + 1),
+                    (rank - 1, file + 2),
+                    (rank + 1, file + 2),
+                    (rank + 2, file + 1),
+                    (rank + 2, file - 1),
+                    (rank + 1, file - 2),
+                    (rank - 1, file - 2),
+                    (rank - 2, file - 1)
+                ]
 
-            for move in possible_moves:
-                move_rank, move_file = move
+                for move in possible_moves:
+                    move_rank, move_file = move
 
-                if Square.in_range(move_rank, move_file):
-                    if self.squares[move_rank][move_file].no_friendly_fire(piece.color):
-                        final_piece = self.squares[move_rank][move_file].piece
-                        move = Move(Square(rank, file), Square(move_rank, move_file, final_piece))
-                        valid_moves.append(move)
+                    if Square.in_range(move_rank, move_file):
+                        if self.squares[move_rank][move_file].no_friendly_fire(piece.color):
+                            final_piece = self.squares[move_rank][move_file].piece
+                            move = Move(Square(rank, file), Square(move_rank, move_file, final_piece))
+                            valid_moves.append(move)
 
         def strait_line_moves(increments):
             for increment in increments:
@@ -1113,9 +1116,11 @@ class Board:
                         move = Move(initial, final)
 
                         if self.squares[possible_move_rank][possible_move_file].occupied_by_noone():
-                            valid_moves.append(move)
+                            if not piece.pinned or (possible_move_rank, possible_move_file) in piece.pinned:
+                                valid_moves.append(move)
                         elif self.squares[possible_move_rank][possible_move_file].occupied_by_opponent(piece.color):
-                            valid_moves.append(move)
+                            if not piece.pinned or (possible_move_rank, possible_move_file) in piece.pinned:
+                                valid_moves.append(move)
                             break
                         elif self.squares[possible_move_rank][possible_move_file].occupied_by_teammate(piece.color):
                             break
@@ -1197,43 +1202,38 @@ class Board:
         for rank in range(ranks):
             for file in range(files):
                 if self.squares[rank][file].occupied_by_teammate(color):
-                    pinned = False
-                    for pinned_square in self.pinned_squares:
-                        if rank == pinned_square[0] and file == pinned_square[1]:
-                            pinned = True
-                    if not pinned:
-                        piece = self.squares[rank][file].piece
+                    piece = self.squares[rank][file].piece
 
-                        if isinstance(piece, Pawn):
-                            pawn_moves()
-                        elif isinstance(piece, King):
-                            king_moves()
-                        elif isinstance(piece, Queen):
-                            strait_line_moves([
-                                (-1, 1),
-                                (-1, -1),
-                                (1, -1),
-                                (1, 1),
-                                (-1, 0),
-                                (0, 1),
-                                (0, -1),
-                                (1, 0)
-                            ])
-                        elif isinstance(piece, Bishop):
-                            strait_line_moves([
-                                (-1, 1),
-                                (-1, -1),
-                                (1, -1),
-                                (1, 1)
-                            ])
-                        elif isinstance(piece, Knight):
-                            knight_moves()
-                        elif isinstance(piece, Rook):
-                            strait_line_moves([
-                                (-1, 0),
-                                (0, 1),
-                                (0, -1),
-                                (1, 0)])
+                    if isinstance(piece, Pawn):
+                        pawn_moves()
+                    elif isinstance(piece, King):
+                        king_moves()
+                    elif isinstance(piece, Queen):
+                        strait_line_moves([
+                            (-1, 1),
+                            (-1, -1),
+                            (1, -1),
+                            (1, 1),
+                            (-1, 0),
+                            (0, 1),
+                            (0, -1),
+                            (1, 0)
+                        ])
+                    elif isinstance(piece, Bishop):
+                        strait_line_moves([
+                            (-1, 1),
+                            (-1, -1),
+                            (1, -1),
+                            (1, 1)
+                        ])
+                    elif isinstance(piece, Knight):
+                        knight_moves()
+                    elif isinstance(piece, Rook):
+                        strait_line_moves([
+                            (-1, 0),
+                            (0, 1),
+                            (0, -1),
+                            (1, 0)])
 
         # calculate stalemate
         if not valid_moves:

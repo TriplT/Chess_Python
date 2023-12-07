@@ -31,6 +31,7 @@ class Piece:
 
         self.moves = []
         self.moved = False
+        self.pinned = []
 
         self.preload_images()
         self.img = img
