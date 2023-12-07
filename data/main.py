@@ -32,10 +32,11 @@ global game_mode
 # die AI als 'test' spielen lassen. Die sollte alle moves durchgehen und die menge comparen
 # .....
 
+
 def main():
     dragger = Dragger()
     board = Board()
-    game = Game('pvp', 'white')
+    game = Game(board, 'pvp', 'white')
     '''
     AI: 'alea iacta est'
         'ambitious promoter'
@@ -82,7 +83,7 @@ def main():
                             final = Square(clicked_rank, clicked_file)
                             move = Move(initial, final)
 
-                            if board.valid_current_move(move):
+                            if move in game.player_valid_moves:
                                 captured = board.squares[clicked_rank][clicked_file].occupied()
                                 board.player_move(board.squares[dragger.initial_rank][dragger.initial_file].piece, move, game)
                                 Sound().play(captured)
@@ -92,12 +93,11 @@ def main():
                                 print_last_move(screen, board)
                                 print_pieces(screen, board, dragger)
                                 game.turn_made()
+                                game.calc_player_valid_moves() # calculates the valid moves of the player
 
                     if board.squares[clicked_rank][clicked_file].occupied():
                         piece = board.squares[clicked_rank][clicked_file].piece
                         if piece.color == game.player:
-                            board.calculate_valid_moves(piece, clicked_rank, clicked_file, bool=True)
-                            board.calc_current_moves(piece)
                             dragger.save_initial((clicked_rank, clicked_file))
                             dragger.drag_piece(piece)
 
@@ -116,16 +116,16 @@ def main():
                     final = Square(released_rank, released_file)
                     move = Move(initial, final)
 
-                    if board.valid_move(dragger.piece, move):
+                    if move in game.player_valid_moves:
                         captured = board.squares[released_rank][released_file].occupied()
                         board.player_move(dragger.piece, move, game)
                         Sound().play(captured)
-                        board.calc_current_moves()
                         screen.fill((0, 0, 0))
                         draw_board(screen)
                         print_last_move(screen, board)
                         print_pieces(screen, board, dragger)
                         game.turn_made()
+                        game.calc_player_valid_moves()
                 dragger.undrag_piece()
 
             if event.type == pygame.QUIT:
@@ -146,7 +146,7 @@ def main():
             else:
                 game.game_end_display(screen, board.win_message, 450, 130)
 
-        move_preview_circle_display(screen, dragger, board)
+        move_preview_circle_display(screen, dragger, game)
         game.draw_game_mode_buttons(screen, 350, 120)
         pygame.display.flip()
         clock.tick(60)

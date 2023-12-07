@@ -436,7 +436,7 @@ class Board:
         else:
             self.evaluation = -round(position_value, 3)
 
-    def add_startposition(self, color):
+    def add_startpositio(self, color):
         if color == 'white':
             rank_pawn, rank_piece = (6, 7)
             self.squares[5][0] = Square(5, 0, Pawn(color))
@@ -465,7 +465,7 @@ class Board:
 
         self.squares[rank_piece][3] = Square(rank_piece, 3, Queen(color))
 
-    def add_startpositio(self, color):
+    def add_startposition(self, color):
         if color == 'white':
             rank_pawn, rank_piece = (6, 7)
         else:
@@ -534,8 +534,7 @@ class Board:
             self.evaluation = 0.0
             self.ai_game_ended = True
 
-    # move the functions directly in here. you can then remove the parameters of check valid moves and enemy attack
-    def get_valid_moves(self, color, max_player):
+    def get_valid_moves(self, color, max_player=True):
 
         self.calculate_enemy_attacking_moves('white' if color == 'black' else 'black')
         if self.enemy_checking_squares:
@@ -593,6 +592,11 @@ class Board:
                 possible_move_file = file + file_inc
 
                 end_reached = False
+                # usually we could just stop the increments as soon as we have a piece that's blocking the path
+                # but we need to account for pinned pieces, for whose we have to continue the search in case a king
+                # is behind our blocking piece.
+                # end reached prevents several functions to look out for checks when a blocking piece was already found.
+                # after end reach we're only checking for potential pinned pieces
                 king_reached = False
                 pinned = False
                 temp_pinned_square = None
@@ -732,10 +736,10 @@ class Board:
                             (0, -1),
                             (1, 0)])
 
-    def in_check_valid_moves(self, color, max_player):
+    def in_check_valid_moves(self, color, max_player=True):
         # WAS HT DAS AUF SICH MIT DEM FINAL PIECE final(rank, file, FINAL PIECE) ?????
         def pawn_moves():
-            if (color == 'white' and rank == 6) or (color == 'black' and rank == 2):
+            if (color == 'white' and rank == 6) or (color == 'black' and rank == 1):
                 steps = 2
             else:
                 steps = 1
@@ -1007,7 +1011,7 @@ class Board:
 
         def pawn_moves():
             promotion_pieces = [Queen, Knight, Bishop, Rook]
-            if (color == 'white' and rank == 6) or (color == 'black' and rank == 2):
+            if (color == 'white' and rank == 6) or (color == 'black' and rank == 1):
                 steps = 2
             else:
                 steps = 1
