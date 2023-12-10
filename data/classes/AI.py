@@ -228,7 +228,7 @@ class AI:
                     board.unmake_move(piece, move)
                 return
 
-            calc_moves(True, 4)
+            calc_moves(True, 5)
             print(f'amount of starting possibilities: {len(AI.test_moves)}')
             count = 0
             for move in AI.test_moves:

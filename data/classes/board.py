@@ -598,6 +598,7 @@ class Board:
                 # after end reach we're only checking for potential pinned pieces
                 king_reached = False
                 pinning_pieces = 0
+                pinned_piece = None
                 temp_pinning_squares = [(rank, file)]
                 temp_checking_squares = [[rank, file]]
                 while True:
@@ -636,7 +637,9 @@ class Board:
 
                                 # pins
                                 if pinning_pieces == 1:
-                                    self.squares[rank][file].piece.pinned = temp_pinning_squares
+                                    print(self.move_counter)
+                                    print('pinned piece found')
+                                    pinned_piece.pinned = temp_pinning_squares
 
                                 # enemy checking squares
                                 if not end_reached:
@@ -651,6 +654,7 @@ class Board:
                                     end_reached = True
 
                                 if not king_reached:
+                                    pinned_piece = self.squares[possible_move_rank][possible_move_file].piece
                                     pinning_pieces += 1
 
                         elif self.squares[possible_move_rank][possible_move_file].occupied_by_teammate(color):
@@ -659,10 +663,11 @@ class Board:
                             end_reached = True
                             if isinstance(self.squares[possible_move_rank][possible_move_file].piece, Pawn):
                                 pass
-                            # enemy pawn should also count as a pinned piece.
-                            # special case en passant could raise some errors otherwise
-                            # give the en passant function a square (rank, file) and
-                            # prevent en passant from being played if it were to kill pawn on square (rank, file)
+                            # mach es mit pinned pieces (dem count)
+                            # wenn der count 0 ist und das eigene piece ein bauer fetz den count hoch oder so
+                            # bei count 1 und das nächste piece ein gegnerischer bauer der auf dem gleichen rank steht
+                            # nach en passant überprüfen
+                            # dann weiterschauen
                     else:
                         break
 
@@ -697,10 +702,12 @@ class Board:
         for rank in range(ranks):
             for file in range(files):
                 piece = self.squares[rank][file].piece
+                if self.squares[rank][file].occupied():
+                    piece.pinned = []
                 if isinstance(piece, King) and piece.color != color:
                     self.king_rank = rank
                     self.king_file = file
-                    break
+
         for rank in range(ranks):
             for file in range(files):
                 if self.squares[rank][file].occupied_by_teammate(color):
