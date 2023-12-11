@@ -220,7 +220,6 @@ class AI:
                     elif depth == 1:
                         AI.resulting_moves += 1
                         AI.count_moves += 1
-                        print(f'moves: {AI.count_moves}')
                         AI.test_moves[AI.counter][0] = AI.resulting_moves
 
                     board.ai_move_simulation(piece, move, True)

@@ -94,7 +94,7 @@ def main():
                                 print_last_move(screen, board)
                                 print_pieces(screen, board, dragger)
                                 game.turn_made()
-                                game.calc_player_valid_moves() # calculates the valid moves of the player
+                                game.calc_player_valid_moves()  # calculates the valid moves of the next player
 
                     if board.squares[clicked_rank][clicked_file].occupied():
                         piece = board.squares[clicked_rank][clicked_file].piece

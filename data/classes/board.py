@@ -907,52 +907,6 @@ class Board:
                             move = Move(initial, final)
                             valid_moves.append(move)
 
-            if not (color == 'white' and self.king_rank == 7 and self.king_file == 4) \
-                    or not (color == 'black' and self.king_rank == 0 and self.king_file == 4):
-                left_rook = self.squares[self.king_rank][0].piece
-                if isinstance(left_rook, Rook):
-                    if not left_rook.moved:
-                        for c in range(1, 4):
-                            # check if piece is in between or if castling would move through check
-                            if self.squares[self.king_rank][c].occupied() \
-                                    or self.enemy_attacking_squares[self.king_rank][c] == 1:
-                                break
-                            if c == 3:
-                                piece.left_rook = left_rook
-
-                                initial = Square(self.king_rank, 0)
-                                final = Square(self.king_rank, 3)
-                                move_rook = Move(initial, final)
-
-                                initial = Square(self.king_rank, file)
-                                final = Square(self.king_rank, 2)
-                                move_king = Move(initial, final)
-
-                                left_rook.add_move(move_rook)
-                                valid_moves.append(move_king)
-
-                right_rook = self.squares[self.king_rank][7].piece
-                if isinstance(right_rook, Rook):
-                    if not right_rook.moved:
-                        for c in range(5, 7):
-                            # check if piece is in between or if castling would move through check
-                            if self.squares[self.king_rank][c].occupied() \
-                                    or self.enemy_attacking_squares[self.king_rank][c] == 1:
-                                break
-                            if c == 6:
-                                piece.right_rook = right_rook
-
-                                initial = Square(self.king_rank, 7)
-                                final = Square(self.king_rank, 5)
-                                move_rook = Move(initial, final)
-
-                                initial = Square(self.king_rank, file)
-                                final = Square(self.king_rank, 6)
-                                move_king = Move(initial, final)
-
-                                right_rook.add_move(move_rook)
-                                valid_moves.append(move_king)
-
         valid_moves = []
         if self.king_must_move:
             print('king is attacked by multiple pieces --> board.king_must_move (in_check_valid_moves)')
@@ -1205,6 +1159,7 @@ class Board:
 
                                 right_rook.add_move(move_rook)
                                 valid_moves.append(move_king)
+            
 
         for rank in range(ranks):
             for file in range(files):
