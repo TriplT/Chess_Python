@@ -133,6 +133,7 @@ class Board:
 
     # set history bei dem rook move beim castlen beachten
     # bzw unmake move je nachdem überarbeiten
+    # mach neue varialbe die übergeben wird, wenn gecastlet wird
     def ai_move(self, piece, move, set_history=False):
         if set_history:
             last_piece = self.squares[move.final_square.rank][move.final_square.file].piece
