@@ -65,6 +65,30 @@ class Board:
 
     def player_move(self, piece, move, game=None):
 
+        if isinstance(piece, King):
+            diff = move.final_square.file - move.initial_square.file
+            if abs(diff) == 1:
+                piece.left_castling = False
+                piece.right_castling = False
+            else:
+                if move.final_square.file == 2:
+                    rank = 0 if piece.color == 'black' else 7
+                    file = 0
+                    rook = self.squares[rank][file].piece
+                    rook_move = Move(Square(rank, file), Square(rank, 3))
+                    self.player_move(rook, rook_move)
+                    piece.left_castling = False
+                    piece.right_castling = False
+
+                if move.final_square.file == 6:
+                    rank = 0 if piece.color == 'black' else 7
+                    file = 7
+                    rook = self.squares[rank][file].piece
+                    rook_move = Move(Square(rank, file), Square(rank, 5))
+                    self.player_move(rook, rook_move)
+                    piece.left_castling = False
+                    piece.right_castling = False
+
         self.squares[move.initial_square.rank][move.initial_square.file].piece = None
         self.squares[move.final_square.rank][move.final_square.file].piece = piece
 
@@ -72,16 +96,15 @@ class Board:
             self.en_passant(piece, move, self.last_move)
             self.player_pawn_promotion(screen, piece, move.final_square, game)
 
-        if isinstance(piece, King):
-            if self.castling(move.initial_square, move.final_square):
-                diff = move.final_square.file - move.initial_square.file
-                rook = piece.left_rook if (diff < 0) else piece.right_rook
-                self.player_move(rook, rook.moves[-1])
+        if isinstance(piece, Rook):
+            rank = 0 if piece.color == 'black' else 7
+            if move.initial_square.rank == rank:
+                if move.initial_square.file == 0:
+                    self.squares[self.king_rank][self.king_file].piece.left_castling = False
+                if move.initial_square.file == 7:
+                    self.squares[self.king_rank][self.king_file].piece.right_castling = False
 
         self.move_played = True
-        piece.moved = True
-        piece.clear_moves()
-        self.current_moves = []
         self.move_counter += 1
 
         self.last_piece = piece
@@ -108,6 +131,8 @@ class Board:
         else:
             print('unexpected error, piece.color not white or black')
 
+    # set history bei dem rook move beim castlen beachten
+    # bzw unmake move je nachdem überarbeiten
     def ai_move(self, piece, move, set_history=False):
         if set_history:
             last_piece = self.squares[move.final_square.rank][move.final_square.file].piece
@@ -127,9 +152,6 @@ class Board:
                 self.ai_move(rook, rook.moves[-1])
 
         self.move_played = True
-        piece.moved = True
-        piece.clear_moves()
-        self.current_moves = []
         self.move_counter += 1
 
         self.last_piece = piece
@@ -1114,52 +1136,34 @@ class Board:
                             move = Move(initial, final)
                             valid_moves.append(move)
 
-            if not (color == 'white' and self.king_rank == 7 and self.king_file == 4) \
-                    or not (color == 'black' and self.king_rank == 0 and self.king_file == 4):
-                left_rook = self.squares[self.king_rank][0].piece
-                if isinstance(left_rook, Rook):
-                    if not left_rook.moved:
-                        for c in range(1, 4):
-                            # check if piece is in between or if castling would move through check
-                            if self.squares[self.king_rank][c].occupied() \
-                                    or self.enemy_attacking_squares[self.king_rank][c] == 1:
-                                break
-                            if c == 3:
-                                piece.left_rook = left_rook
+            if (color == 'white' and self.king_rank == 7 and self.king_file == 4) \
+                    or (color == 'black' and self.king_rank == 0 and self.king_file == 4):
+                king = self.squares[self.king_rank][self.king_file].piece
+                if king.left_castling and self.enemy_attacking_squares[self.king_rank][self.king_file] == 0:
+                    squares = [1, 2, 3]
+                    can_castle = True
+                    for square in squares:
+                        if self.squares[self.king_rank][square].occupied() \
+                                    or self.enemy_attacking_squares[self.king_rank][square] == 1:
+                            can_castle = False
+                    if can_castle:
+                        initial = Square(self.king_rank, self.king_file)
+                        final = Square(self.king_rank, 2)
+                        move = Move(initial, final)
+                        valid_moves.append(move)
 
-                                initial = Square(self.king_rank, 0)
-                                final = Square(self.king_rank, 3)
-                                move_rook = Move(initial, final)
-
-                                initial = Square(self.king_rank, file)
-                                final = Square(self.king_rank, 2)
-                                move_king = Move(initial, final)
-
-                                left_rook.add_move(move_rook)
-                                valid_moves.append(move_king)
-
-                right_rook = self.squares[self.king_rank][7].piece
-                if isinstance(right_rook, Rook):
-                    if not right_rook.moved:
-                        for c in range(5, 7):
-                            # check if piece is in between or if castling would move through check
-                            if self.squares[self.king_rank][c].occupied() \
-                                    or self.enemy_attacking_squares[self.king_rank][c] == 1:
-                                break
-                            if c == 6:
-                                piece.right_rook = right_rook
-
-                                initial = Square(self.king_rank, 7)
-                                final = Square(self.king_rank, 5)
-                                move_rook = Move(initial, final)
-
-                                initial = Square(self.king_rank, file)
-                                final = Square(self.king_rank, 6)
-                                move_king = Move(initial, final)
-
-                                right_rook.add_move(move_rook)
-                                valid_moves.append(move_king)
-            
+                if king.right_castling and self.enemy_attacking_squares[self.king_rank][self.king_file] == 0:
+                    squares = [5, 6]
+                    can_castle = True
+                    for square in squares:
+                        if self.squares[self.king_rank][square].occupied() \
+                                    or self.enemy_attacking_squares[self.king_rank][square] == 1:
+                            can_castle = False
+                    if can_castle:
+                        initial = Square(self.king_rank, self.king_file)
+                        final = Square(self.king_rank, 6)
+                        move = Move(initial, final)
+                        valid_moves.append(move)
 
         for rank in range(ranks):
             for file in range(files):
