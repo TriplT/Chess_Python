@@ -66,6 +66,8 @@ class Board:
     def player_move(self, piece, move, game=None):
 
         if isinstance(piece, King):
+            last_piece = self.squares[move.final_square.rank][move.final_square.file].piece
+            self.save_last_eaten_piece(last_piece)
             diff = move.final_square.file - move.initial_square.file
             if abs(diff) == 1:
                 piece.left_castling = False
@@ -219,9 +221,25 @@ class Board:
         else:
             self.squares[move.final_square.rank][move.final_square.file].piece = None
 
-        if isinstance(piece, Pawn):
-            if move.final_square.rank - move.initial_square.rank == 2:
-                piece.moved = False
+        # revert castling
+        if isinstance(piece, King):
+            if move.final_square.file - move.initial_square.file == 2:
+                rank = 0 if piece.color == 'black' else 7
+                initial_file = 0 if move.final_square.file == 2 else 7
+                final_file = 3 if move.final_square.file == 2 else 5
+
+                rook = self.squares[rank][final_file].piece
+                rook_move = Move(Square(rank, initial_file), Square(rank, final_file))
+
+                self.save_last_eaten_piece(None)
+                self.unmake_move(rook, rook_move)
+
+                # give back possibility to castle
+                king = self.squares[rank][4].piece
+                if move.final_square.file == 2:
+                    king.left_castling = False
+                else:
+                    king.right_castling = False
 
         self.move_counter -= 1
 
