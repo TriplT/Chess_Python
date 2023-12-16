@@ -28,6 +28,9 @@ class AI:
 
         self.castle_moves = [Move(Square(7, 4), Square(7, 6)), Move(Square(7, 6), Square(5, 5)),
                              Move(Square(7, 5), Square(5, 7)), Move(Square(6, 6), Square(4, 6))]
+        self.one_moves = [Move(Square(6, 5), Square(4, 5)), Move(Square(6, 6), Square(4, 6))]
+        self.one = False
+        self.two_moves = [Move(Square(0, 0), Square(0, 1)), Move(Square(0, 1), Square(2, 2))]
 
     def play_moves(self, board, engine='alea iacta est'):
         # print(board.evaluate_position(self.color))
@@ -39,20 +42,11 @@ class AI:
 
         # engines
         def play_random():
-            while True:
-                square = random.choice(self.squares_with_piece)
-                piece = square.piece
-                board.calculate_valid_moves(piece, square.rank, square.file, bool=True)
+            moves = board.get_valid_moves(self.color)
+            move = random.choice(moves)
 
-                if not piece.moves:
-                    self.squares_with_piece.remove(square)
-                else:
-                    move = random.choice(piece.moves)
-
-                    if board.valid_move(piece, move):
-                        promotion_piece = random.choice(self.promotion_pieces)
-                        board.ai_move(piece, move, promotion_piece)
-                        return
+            board.ai_move_simulation(board.squares[move.initial_square.rank][move.initial_square.file].piece, move)
+            return
 
         def random_test_improved():
             # random_move = random.choice(board.get_valid_moves(self.color))
@@ -171,6 +165,8 @@ class AI:
             print(' ')
             print(f'this is the final eval: {evaluation}')
             print(f'this is the final move: {final_move}')
+            print(board.squares[final_move.initial_square.rank][final_move.initial_square.file].piece.color,
+                  board.squares[final_move.initial_square.rank][final_move.initial_square.file].piece.name)
             print(f'initial sq: ({final_move.initial_square.rank}, {final_move.initial_square.file}) final sq: '
                   f'({final_move.final_square.rank}, {final_move.final_square.file})')
 
@@ -198,13 +194,28 @@ class AI:
                 x = 349737
 
         def castling():
-            move = self.castle_moves[-1]
-            self.castle_moves.pop()
-            board.ai_move_simulation(move)
-            '''
-            board.unmake_move(move)
-            board.ai_move_simulation(move)
-            '''
+            if self.castle_moves:
+                move = self.castle_moves[-1]
+                self.castle_moves.pop()
+                piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
+                board.ai_move_simulation(piece, move, True)
+                board.unmake_move(piece, move)
+                board.ai_move_simulation(piece, move)
+                return
+            else:
+                while True:
+                    x = 3948
+
+        def unmake():
+            if board.move_counter == 0:
+                move = Move(Square(6, 3), Square(4, 3))
+                piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
+                board.ai_move_simulation(piece, move, True)
+                board.unmake_move(piece, move)
+                board.ai_move_simulation(piece, move)
+            else:
+                while True:
+                    x = 32947
 
         def test_moves():
             def calc_moves(turn, depth):
@@ -251,7 +262,14 @@ class AI:
             print(f'final moves calculated: {AI.count_moves}')
             while True:
                 x = 2344
+
         # engine names
+        if engine == 'unmake':  # plays random moves throughout the game
+            unmake()
+
+        if engine == 'castle':  # plays random moves throughout the game
+            castling()
+
         if engine == 'amount':  # plays random moves throughout the game
             move_amount()
 
@@ -291,6 +309,12 @@ class AI:
 
         self.minimax_count += 1
 
+        print(' ')
+        print(self.minimax_count)
+        print(f'depth: {depth}, color: {player_color}')
+        # if board.squares[4][6].piece:
+        #    print(f'{board.squares[4][6].piece.color} {board.squares[4][6].piece.name} should be on square 4, 6')
+
         valid_moves = board.get_valid_moves(player_color, max_player)
         board.game_end_minimax(player_color)
 
@@ -308,8 +332,22 @@ class AI:
             for move in valid_moves:
                 piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
 
+                if isinstance(piece, King) and abs(move.initial_square.file - move.final_square.file) == 2:
+                    print(f'minimax king castling: {piece.color} {piece.name}')
+                print('move')
+                print(piece.color, piece.name)
+                print((move.initial_square.rank, move.initial_square.file), (move.final_square.rank, move.final_square.file))
+
                 board.ai_move_simulation(piece, move, True)
                 evaluation = self.minimax_ascended(board, depth - 1, alpha, beta, False)
+
+                if isinstance(piece, King) and abs(move.initial_square.file - move.final_square.file) == 2:
+                    print(f'minimax unmake king castling: {piece.color} {piece.name}')
+                print('unmake move')
+                print(piece.color, piece.name)
+                print((move.initial_square.rank, move.initial_square.file),
+                      (move.final_square.rank, move.final_square.file))
+
                 board.unmake_move(piece, move)
 
                 max_eval = max(max_eval, evaluation[0])
@@ -331,8 +369,23 @@ class AI:
             for move in valid_moves:
                 piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
 
+                if isinstance(piece, King) and abs(move.initial_square.file - move.final_square.file) == 2:
+                    print(f'minimax king castling: {piece.color} {piece.name}')
+                print('move')
+                print((move.initial_square.rank, move.initial_square.file),
+                      (move.final_square.rank, move.final_square.file))
+                print(piece.color, piece.name)
+
                 board.ai_move_simulation(piece, move, True)
                 evaluation = self.minimax_ascended(board, depth - 1, alpha, beta, True)
+
+                if isinstance(piece, King) and abs(move.initial_square.file - move.final_square.file) == 2:
+                    print(f'minimax unmake king castling: {piece.color} {piece.name}')
+                print('unmake move')
+                print((move.initial_square.rank, move.initial_square.file),
+                      (move.final_square.rank, move.final_square.file))
+                print(piece.color, piece.name)
+
                 board.unmake_move(piece, move)
 
                 min_eval = min(min_eval, evaluation[0])

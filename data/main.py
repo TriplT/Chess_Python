@@ -43,7 +43,7 @@ def main():
         'berserk killer'
         'interstellar calculator'
         'AI annihilator'
-        'test
+        'test'
     '''
 
     ai_2 = AI('i', 0, 1, None)
