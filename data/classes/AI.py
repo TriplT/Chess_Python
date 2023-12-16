@@ -26,6 +26,9 @@ class AI:
         self.max_pruning_count = 0
         self.min_pruning_count = 0
 
+        self.castle_moves = [Move(Square(7, 4), Square(7, 6)), Move(Square(7, 6), Square(5, 5)),
+                             Move(Square(7, 5), Square(5, 7)), Move(Square(6, 6), Square(4, 6))]
+
     def play_moves(self, board, engine='alea iacta est'):
         # print(board.evaluate_position(self.color))
         self.squares_with_piece = board.save_own_square_pieces(self.color)
@@ -158,7 +161,7 @@ class AI:
             return True
 
         def play_interstellar_improved():
-            evaluation, final_move = self.minimax_ascended(board, 6, -math.inf, math.inf, True)
+            evaluation, final_move = self.minimax_ascended(board, 4, -math.inf, math.inf, True)
 
             print(' ')
             print(f'minimax count: {self.minimax_count}')
@@ -194,6 +197,15 @@ class AI:
             while True:
                 x = 349737
 
+        def castling():
+            move = self.castle_moves[-1]
+            self.castle_moves.pop()
+            board.ai_move_simulation(move)
+            '''
+            board.unmake_move(move)
+            board.ai_move_simulation(move)
+            '''
+
         def test_moves():
             def calc_moves(turn, depth):
                 if depth == 0:
@@ -227,7 +239,7 @@ class AI:
                     board.unmake_move(piece, move)
                 return
 
-            calc_moves(True, 5)
+            calc_moves(True, 4)
             print(f'amount of starting possibilities: {len(AI.test_moves)}')
             count = 0
             for move in AI.test_moves:

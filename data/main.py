@@ -46,8 +46,8 @@ def main():
         'test
     '''
 
-    ai_2 = AI('amount', 0, 1, None)
-    ai_1 = AI('test', 0, 1, None)
+    ai_2 = AI('i', 0, 1, None)
+    ai_1 = AI('i', 0, 1, None)
 
     while True:
         screen.fill((0, 0, 0))
@@ -61,8 +61,6 @@ def main():
             dragger.piece_clicked()
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if isinstance(board.squares[7][5].piece, Rook):
-                    board.unmake_move(board.squares[7][6].piece, Move(Square(7, 4), Square(7, 6)))
                 dragger.update_mouse(event.pos)
                 game.check_game_mode_buttons(dragger, board, 350, 120)
                 if game.game_mode == 'pvp':
