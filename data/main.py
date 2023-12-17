@@ -88,7 +88,6 @@ def main():
                                 captured = board.squares[clicked_rank][clicked_file].occupied()
                                 board.player_move(board.squares[dragger.initial_rank][dragger.initial_file].piece, move, game)
                                 Sound().play(captured)
-                                board.calc_current_moves()
                                 screen.fill((0, 0, 0))
                                 draw_board(screen)
                                 print_last_move(screen, board)

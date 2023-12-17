@@ -3,12 +3,12 @@ from Pycharm_Projects.Chess_Test.data.classes.board import *
 
 
 class Game:
+    player_valid_moves = None
 
     def __init__(self, board, game_mode='pvp', player='white'):
         self.board = board
         self.game_mode = game_mode
         self.player = player
-        self.player_valid_moves = None
         self.message = False
         self.game_run_through = 0
         self.white_wins = 0
@@ -30,6 +30,8 @@ class Game:
         if self.player == ai.color and not board.game_ended and not board.move_played:
             ai.play_moves(board, ai.engine)
             self.turn_made()
+            if self.game_mode == 'pva':
+                self.calc_player_valid_moves()
 
     # check if self.player is indeed white when white wins or if it already changed to black
     def game_end_100ava(self, board, message):

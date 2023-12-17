@@ -39,6 +39,7 @@ class Board:
         self.last_move = None
         self.last_white_move = None
         self.last_black_move = None
+        self.last_minimax_move = None
         self.current_moves = []
 
         self.last_num_of_pieces = 0  # 50 move-rule, ineffizient?
@@ -56,21 +57,15 @@ class Board:
             for file in range(files):
                 self.squares[rank][file] = Square(rank, file)
 
-    def calc_current_moves(self, piece=None):
-        if piece:
-            self.current_moves = piece.moves
-
-        if not piece:
-            self.current_moves = []
-
     def player_move(self, piece, move, game=None):
 
         if isinstance(piece, King):
-            diff = move.final_square.file - move.initial_square.file
-            if abs(diff) == 1:
+            diff = abs(move.final_square.file - move.initial_square.file)
+            if diff <= 1:
                 piece.left_castling = False
                 piece.right_castling = False
             else:
+                print('king castling:')
                 if move.final_square.file == 2:
                     rank = 0 if piece.color == 'black' else 7
                     file = 0
@@ -81,10 +76,14 @@ class Board:
                     piece.right_castling = False
 
                 if move.final_square.file == 6:
+                    print('right side castling')
                     rank = 0 if piece.color == 'black' else 7
                     file = 7
                     rook = self.squares[rank][file].piece
                     rook_move = Move(Square(rank, file), Square(rank, 5))
+                    print(' ')
+                    print('rook move')
+                    print(' ')
                     self.player_move(rook, rook_move)
                     piece.left_castling = False
                     piece.right_castling = False
@@ -128,6 +127,57 @@ class Board:
         else:
             print('unexpected error, piece.color not white or black')
 
+    def new_player_move(self, piece, move):
+        if isinstance(piece, King):
+            # self.king_rank = move.final_square.rank  # updated king pos is needed for possible following rook moves
+            # self.king_file = move.final_square.file  # updated king pos is needed for possible following rook moves
+            rank_diff = abs(move.final_square.rank - move.initial_square.rank)
+            file_diff = abs(move.final_square.file - move.initial_square.file)
+            piece.left_castling = False
+            piece.right_castling = False
+
+            if rank_diff == 0 and file_diff == 2:
+                print(
+                    f'{self.squares[self.king_rank][self.king_file].piece.color} {self.squares[self.king_rank][self.king_file].piece.name} on square ({self.king_rank}, {self.king_file})')
+                if move.final_square.file == 2:
+                    rank = 0 if piece.color == 'black' else 7
+                    file = 0
+                    rook = self.squares[rank][file].piece
+                    print('hallloooooooooo')
+                    print(
+                        f'making {piece.color} ({self.squares[rank][file].piece.color}) rook ({self.squares[rank][file].piece}) move from square ({rank, file})')
+                    rook_move = Move(Square(rank, file), Square(rank, 3))
+                    # self.king_file = move.final_square.file  # updated king pos is needed for the following rook move
+                    self.ai_move_simulation(rook, rook_move)
+
+                if move.final_square.file == 6:
+                    rank = 0 if piece.color == 'black' else 7
+                    file = 7
+                    rook = self.squares[rank][file].piece
+                    print('hallloooooooooo')
+                    print(
+                        f'making {piece.color} ({self.squares[rank][file].piece.color}) rook ({self.squares[rank][file].piece}) move from square ({rank, file})')
+                    rook_move = Move(Square(rank, file), Square(rank, 5))
+                    # self.king_file = move.final_square.file  # updated king pos is needed for the following rook move
+                    self.ai_move_simulation(rook, rook_move, False)
+
+        self.squares[move.initial_square.rank][move.initial_square.file].piece = None
+        self.squares[move.final_square.rank][move.final_square.file].piece = piece
+
+        if isinstance(piece, Pawn):
+            pass
+            # en passant not working, will find random ass moves that don't exist
+            # self.en_passant(piece, move, self.last_move)
+            self.ai_pawn_promotion(piece, move)
+
+        if isinstance(piece, Rook):
+            king = self.squares[self.king_rank][self.king_file].piece
+            king.left_castling = False
+            king.right_castling = False
+
+        self.move_played = True
+        self.move_counter += 1
+
     # set history bei dem rook move beim castlen beachten
     # bzw unmake move je nachdem überarbeiten
     # mach neue varialbe die übergeben wird, wenn gecastlet wird
@@ -137,8 +187,8 @@ class Board:
             self.save_last_eaten_piece(last_piece)
 
         if isinstance(piece, King):
-            diff = move.final_square.file - move.initial_square.file
-            if abs(diff) == 1:
+            diff = abs(move.final_square.file - move.initial_square.file)
+            if diff <= 1:
                 piece.left_castling = False
                 piece.right_castling = False
             else:
@@ -164,7 +214,8 @@ class Board:
         self.squares[move.final_square.rank][move.final_square.file].piece = piece
 
         if isinstance(piece, Pawn):
-            self.en_passant(piece, move, self.last_move)
+            # en passant not working properly
+            # self.en_passant(piece, move, self.last_move)
             self.ai_pawn_promotion(piece, move)
 
         if isinstance(piece, Rook):
@@ -207,12 +258,11 @@ class Board:
         if isinstance(piece, King):
             # self.king_rank = move.final_square.rank  # updated king pos is needed for possible following rook moves
             # self.king_file = move.final_square.file  # updated king pos is needed for possible following rook moves
-            rank_diff = abs(move.final_square.rank - move.initial_square.rank)
             file_diff = abs(move.final_square.file - move.initial_square.file)
             piece.left_castling = False
             piece.right_castling = False
 
-            if rank_diff == 0 and file_diff == 2:
+            if file_diff == 2:
                 print(f'{self.squares[self.king_rank][self.king_file].piece.color} {self.squares[self.king_rank][self.king_file].piece.name} on square ({self.king_rank}, {self.king_file})')
                 if move.final_square.file == 2:
                     rank = 0 if piece.color == 'black' else 7
@@ -222,7 +272,7 @@ class Board:
                     print(f'making {piece.color} ({self.squares[rank][file].piece.color}) rook ({self.squares[rank][file].piece}) move from square ({rank, file})')
                     rook_move = Move(Square(rank, file), Square(rank, 3))
                     # self.king_file = move.final_square.file  # updated king pos is needed for the following rook move
-                    self.ai_move_simulation(rook, rook_move)
+                    self.ai_move_simulation(rook, rook_move, False)
 
                 if move.final_square.file == 6:
                     rank = 0 if piece.color == 'black' else 7
@@ -238,18 +288,20 @@ class Board:
         self.squares[move.final_square.rank][move.final_square.file].piece = piece
 
         if isinstance(piece, Pawn):
-            pass
             # en passant not working, will find random ass moves that don't exist
-            # self.en_passant(piece, move, self.last_move)
-            # self.ai_pawn_promotion(piece, move)
+            self.en_passant(piece, move, self.last_minimax_move)
+            self.ai_pawn_promotion(piece, move)
 
         if isinstance(piece, Rook):
-            king = self.squares[self.king_rank][self.king_file].piece
-            king.left_castling = False
-            king.right_castling = False
+            if not piece.moved:
+                king = self.squares[self.king_rank][self.king_file].piece
+                king.left_castling = False
+                king.right_castling = False
 
         self.move_played = True
         self.move_counter += 1
+
+        self.last_minimax_move = move
 
     def save_last_eaten_piece(self, piece):
         # piece.moved ???
@@ -290,13 +342,6 @@ class Board:
                     king.right_castling = True
 
         self.move_counter -= 1
-
-    @staticmethod
-    def valid_move(piece, move):
-        return move in piece.moves
-
-    def valid_current_move(self, move):
-        return move in self.current_moves
 
     @staticmethod
     def castling(initial, final):
@@ -357,30 +402,6 @@ class Board:
         if piece.en_passant and move.final_square.file == last_move.final_square.file:
             self.squares[last_move.final_square.rank][last_move.final_square.file].piece = None
             piece.en_passant = False
-
-    def in_check(self, piece, move):
-        final_pos_piece = self.squares[move.final_square.rank][move.final_square.file].piece
-
-        self.squares[move.initial_square.rank][move.initial_square.file].piece = None
-        self.squares[move.final_square.rank][move.final_square.file].piece = piece
-
-        for rank in range(ranks):
-            for file in range(files):
-                if self.squares[rank][file].occupied_by_opponent(piece.color):
-                    p = self.squares[rank][file].piece
-                    self.calculate_valid_moves(p, rank, file, bool=False)
-
-                    for m in p.moves:
-                        if isinstance(self.squares[m.final_square.rank][m.final_square.file].piece, King):
-                            self.squares[move.initial_square.rank][move.initial_square.file].piece = piece
-                            self.squares[move.final_square.rank][move.final_square.file].piece = final_pos_piece
-                            p.moves = []
-                            return True
-                    p.moves = []
-
-        self.squares[move.initial_square.rank][move.initial_square.file].piece = piece
-        self.squares[move.final_square.rank][move.final_square.file].piece = final_pos_piece
-        return False
 
     def game_end(self, color):
         # stalemate
@@ -491,30 +512,6 @@ class Board:
                 if self.squares[rank][file].piece:
                     counter += 1
         self.last_num_of_pieces = counter
-
-    def get_moves(self, color):
-        lst = []
-        for rank in range(ranks):
-            for file in range(files):
-                if self.squares[rank][file].occupied_by_teammate(color):
-                    piece = self.squares[rank][file].piece
-                    self.calculate_valid_moves(piece, rank, file, bool=True)
-                    for move in piece.moves:
-                        lst.append(move)
-        return lst
-
-    def get_movess(self, color):
-        lst = []
-        for rank in range(ranks):
-            for file in range(files):
-                if self.squares[rank][file].occupied_by_teammate(color):
-
-                    piece = self.squares[rank][file].piece
-                    self.calculate_valid_moves(piece, rank, file, bool=True)
-
-                    for move in piece.moves:
-                        lst.append(move)
-        return lst
 
     def evaluate_position(self, color):
         pieces = self.save_all_pieces()
@@ -1194,6 +1191,9 @@ class Board:
                 (self.king_rank + 0, self.king_file + 1),
             ]
 
+            print(piece.color, piece.name)
+            print('left, right castling:')
+            print(piece.left_castling, piece.right_castling)
             for move in moves:
                 possible_move_rank, possible_move_file = move
                 if Square.in_range(possible_move_rank, possible_move_file):
@@ -1276,6 +1276,124 @@ class Board:
             self.evaluation = 0
         return valid_moves
 
+    '''
+    # functions for debugging:
+
+    def add_startpositio(self, color):
+        # check_stale_and_checkmate
+        if color == 'white':
+            self.squares[1][7] = Square(1, 7, Pawn(color))
+            self.squares[6][7] = Square(6, 7, Rook(color))
+
+            # self.squares[3][2] = Square(3, 2, Pawn(color))
+
+            self.squares[7][2] = Square(7, 2, King(color))
+
+        if color == 'black':
+            self.squares[7][0] = Square(7, 0, King(color))
+        
+        
+    def add_startpositio(self, color):
+        # AI check for check/stalemate
+        if color == 'white':
+            self.squares[2][0] = Square(2, 0, Knight(color))
+
+            self.squares[5][0] = Square(5, 0, Pawn(color))
+            self.squares[4][1] = Square(4, 1, Knight(color))
+            self.squares[1][2] = Square(1,2, Pawn(color))
+            self.squares[1][3] = Square(1, 3, Knight(color))
+            self.squares[2][3] = Square(2, 3, Knight(color))
+            self.squares[3][3] = Square(3, 3, Bishop(color))
+
+            self.squares[3][2] = Square(3, 2, King(color))
+
+        if color == 'black':
+            self.squares[4][0] = Square(4, 0, Pawn(color))
+
+            self.squares[1][0] = Square(1, 0, King(color))
+        
+        
+    def add_startposition(self, color):
+        check insufficient material
+        if color == 'white':
+            rank_pawn, rank_piece = (6, 7)
+        else:
+            rank_pawn, rank_piece = (1, 0)
+
+        self.squares[rank_piece][4] = Square(rank_piece, 4, King(color))
+
+        if color == 'black':
+            self.squares[6][3] = Square(rank_piece, 1, Knight('black'))
+            self.squares[rank_piece][1] = Square(rank_piece, 1, Bishop('black'))
+            self.squares[rank_piece][6] = Square(rank_piece, 1, Knight('white'))
+        
+        
+    def add_startposition(self, color):
+        # check pawn promotion
+        if color == 'white':
+            rank_pawn, rank_piece = (6, 4)
+        else:
+            rank_pawn, rank_piece = (1, 2)
+
+        self.squares[rank_piece][1] = Square(rank_piece, 1, Knight(color))
+        self.squares[rank_piece][6] = Square(rank_piece, 6, Bishop('white'))
+
+        self.squares[rank_piece][4] = Square(rank_piece, 4, King(color))
+        
+    def add_startposition(self, color):
+        if color == 'white':
+            rank_pawn, rank_piece = (6, 7)
+        else:
+            rank_pawn, rank_piece = (1, 0)
+
+        self.squares[rank_piece][7] = Square(rank_piece, 7, King(color))
+
+        if color == 'white':
+            self.squares[1][0] = Square(1, 0, Pawn('white'))
+            self.squares[1][1] = Square(1, 1, Rook('white'))
+            
+            
+    # old functions to calculate valid moves
+    # need to add piece.moved and piece.moves = [] variable back for functionality
+    
+    @staticmethod
+    def valid_move(piece, move):
+        return move in piece.moves
+
+    def valid_current_move(self, move):
+        return move in self.current_moves
+        
+    def calc_current_moves(self, piece=None):
+        if piece:
+            self.current_moves = piece.moves
+
+        if not piece:
+            self.current_moves = []
+    
+    def in_check(self, piece, move):
+        final_pos_piece = self.squares[move.final_square.rank][move.final_square.file].piece
+
+        self.squares[move.initial_square.rank][move.initial_square.file].piece = None
+        self.squares[move.final_square.rank][move.final_square.file].piece = piece
+
+        for rank in range(ranks):
+            for file in range(files):
+                if self.squares[rank][file].occupied_by_opponent(piece.color):
+                    p = self.squares[rank][file].piece
+                    self.calculate_valid_moves(p, rank, file, bool=False)
+
+                    for m in p.moves:
+                        if isinstance(self.squares[m.final_square.rank][m.final_square.file].piece, King):
+                            self.squares[move.initial_square.rank][move.initial_square.file].piece = piece
+                            self.squares[move.final_square.rank][move.final_square.file].piece = final_pos_piece
+                            p.moves = []
+                            return True
+                    p.moves = []
+
+        self.squares[move.initial_square.rank][move.initial_square.file].piece = piece
+        self.squares[move.final_square.rank][move.final_square.file].piece = final_pos_piece
+        return False
+    
     def calculate_valid_moves(self, piece, rank, file, bool):
 
         def pawn_moves():
@@ -1750,81 +1868,5 @@ class Board:
                             (0, -1),
                             (1, 0)])
         return valid_moves
-
-    # functions for debugging:
-
-    '''
-        def add_startpositio(self, color):
-        # check_stale_and_checkmate
-        if color == 'white':
-            self.squares[1][7] = Square(1, 7, Pawn(color))
-            self.squares[6][7] = Square(6, 7, Rook(color))
-
-            # self.squares[3][2] = Square(3, 2, Pawn(color))
-
-            self.squares[7][2] = Square(7, 2, King(color))
-
-        if color == 'black':
-            self.squares[7][0] = Square(7, 0, King(color))
-        
-        
-        def add_startpositio(self, color):
-        # AI check for check/stalemate
-        if color == 'white':
-            self.squares[2][0] = Square(2, 0, Knight(color))
-
-            self.squares[5][0] = Square(5, 0, Pawn(color))
-            self.squares[4][1] = Square(4, 1, Knight(color))
-            self.squares[1][2] = Square(1,2, Pawn(color))
-            self.squares[1][3] = Square(1, 3, Knight(color))
-            self.squares[2][3] = Square(2, 3, Knight(color))
-            self.squares[3][3] = Square(3, 3, Bishop(color))
-
-            self.squares[3][2] = Square(3, 2, King(color))
-
-        if color == 'black':
-            self.squares[4][0] = Square(4, 0, Pawn(color))
-
-            self.squares[1][0] = Square(1, 0, King(color))
-        
-        
-        def add_startposition(self, color):
-        check insufficient material
-        if color == 'white':
-            rank_pawn, rank_piece = (6, 7)
-        else:
-            rank_pawn, rank_piece = (1, 0)
-
-        self.squares[rank_piece][4] = Square(rank_piece, 4, King(color))
-
-        if color == 'black':
-            self.squares[6][3] = Square(rank_piece, 1, Knight('black'))
-            self.squares[rank_piece][1] = Square(rank_piece, 1, Bishop('black'))
-            self.squares[rank_piece][6] = Square(rank_piece, 1, Knight('white'))
-        
-        
-        def add_startposition(self, color):
-        # check pawn promotion
-        if color == 'white':
-            rank_pawn, rank_piece = (6, 4)
-        else:
-            rank_pawn, rank_piece = (1, 2)
-
-        self.squares[rank_piece][1] = Square(rank_piece, 1, Knight(color))
-        self.squares[rank_piece][6] = Square(rank_piece, 6, Bishop('white'))
-
-        self.squares[rank_piece][4] = Square(rank_piece, 4, King(color))
-        
-            def add_startposition(self, color):
-        if color == 'white':
-            rank_pawn, rank_piece = (6, 7)
-        else:
-            rank_pawn, rank_piece = (1, 0)
-
-        self.squares[rank_piece][7] = Square(rank_piece, 7, King(color))
-
-        if color == 'white':
-            self.squares[1][0] = Square(1, 0, Pawn('white'))
-            self.squares[1][1] = Square(1, 1, Rook('white'))
     
     '''

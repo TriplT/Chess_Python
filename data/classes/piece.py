@@ -29,8 +29,6 @@ class Piece:
         value_sign = 1 if color == 'white' else -1
         self.value = value * value_sign
 
-        self.moves = []
-        self.moved = False
         self.pinned = []
 
         self.preload_images()
@@ -38,10 +36,12 @@ class Piece:
         self.img = self.piece_images[f'{color}_{name}']
         self.img_rect = img_rect
 
+    '''
     # append a move into the self.moves list
     def add_move(self, move):
         self.moves.append(move)
 
     def clear_moves(self):
         self.moves = []
+    '''
 

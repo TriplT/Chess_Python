@@ -1,6 +1,7 @@
 import random
 import math
 from Pycharm_Projects.Chess_Test.data.classes.board import *
+from Pycharm_Projects.Chess_Test.data.classes.game import *
 
 
 class AI:
@@ -35,7 +36,7 @@ class AI:
     def play_moves(self, board, engine='alea iacta est'):
         # print(board.evaluate_position(self.color))
         self.squares_with_piece = board.save_own_square_pieces(self.color)
-        self.moves = board.get_moves(self.color)
+        self.moves = Game.player_valid_moves
 
         if not self.squares_with_piece:
             exit(0)
@@ -155,7 +156,7 @@ class AI:
             return True
 
         def play_interstellar_improved():
-            evaluation, final_move = self.minimax_ascended(board, 4, -math.inf, math.inf, True)
+            evaluation, final_move = self.minimax_ascended(board, 5, -math.inf, math.inf, True)
 
             print(' ')
             print(f'minimax count: {self.minimax_count}')
