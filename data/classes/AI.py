@@ -373,9 +373,9 @@ class AI:
                 if isinstance(piece, King) and abs(move.initial_square.file - move.final_square.file) == 2:
                     print(f'minimax king castling: {piece.color} {piece.name}')
                 print('move')
+                print(piece.color, piece.name)
                 print((move.initial_square.rank, move.initial_square.file),
                       (move.final_square.rank, move.final_square.file))
-                print(piece.color, piece.name)
 
                 board.minimax_move(piece, move, True)
                 evaluation = self.minimax_ascended(board, depth - 1, alpha, beta, True)
@@ -383,9 +383,9 @@ class AI:
                 if isinstance(piece, King) and abs(move.initial_square.file - move.final_square.file) == 2:
                     print(f'minimax unmake king castling: {piece.color} {piece.name}')
                 print('unmake move')
+                print(piece.color, piece.name)
                 print((move.initial_square.rank, move.initial_square.file),
                       (move.final_square.rank, move.final_square.file))
-                print(piece.color, piece.name)
 
                 board.unmake_move(piece, move)
 

@@ -34,6 +34,7 @@ class Board:
 
         self.move_played = False
         self.move_counter = 0
+        self.minimax_move_counter = 0
 
         self.last_piece = None
         self.last_move = None
@@ -57,76 +58,6 @@ class Board:
             for file in range(files):
                 self.squares[rank][file] = Square(rank, file)
 
-    def old_player_move(self, piece, move, game=None):
-
-        if isinstance(piece, King):
-            diff = abs(move.final_square.file - move.initial_square.file)
-            if diff <= 1:
-                piece.left_castling = False
-                piece.right_castling = False
-            else:
-                print('king castling:')
-                if move.final_square.file == 2:
-                    rank = 0 if piece.color == 'black' else 7
-                    file = 0
-                    rook = self.squares[rank][file].piece
-                    rook_move = Move(Square(rank, file), Square(rank, 3))
-                    self.move(rook, rook_move)
-                    piece.left_castling = False
-                    piece.right_castling = False
-
-                if move.final_square.file == 6:
-                    print('right side castling')
-                    rank = 0 if piece.color == 'black' else 7
-                    file = 7
-                    rook = self.squares[rank][file].piece
-                    rook_move = Move(Square(rank, file), Square(rank, 5))
-                    print(' ')
-                    print('rook move')
-                    print(' ')
-                    self.move(rook, rook_move)
-                    piece.left_castling = False
-                    piece.right_castling = False
-
-        self.squares[move.initial_square.rank][move.initial_square.file].piece = None
-        self.squares[move.final_square.rank][move.final_square.file].piece = piece
-
-        if isinstance(piece, Pawn):
-            self.en_passant(piece, move, self.last_move)
-            self.player_pawn_promotion(screen, piece, move.final_square, game)
-
-        if isinstance(piece, Rook):
-            king = self.squares[self.king_rank][self.king_file].piece
-            king.left_castling = False
-            king.right_castling = False
-
-        self.move_played = True
-        self.move_counter += 1
-
-        self.last_piece = piece
-        self.last_move = move
-
-        # move repetition
-        if piece.color == 'white':
-            if (self.last_black_move and move.initial_square == self.last_white_move.final_square
-                    and move.final_square == self.last_white_move.initial_square):
-                self.repetition_counter += 1
-            else:
-                self.repetition_counter = 0
-
-            self.last_white_move = move
-
-        elif piece.color == 'black':
-            if (self.last_black_move and move.initial_square == self.last_black_move.final_square
-                    and move.final_square == self.last_black_move.initial_square):
-                self.repetition_counter += 1
-            else:
-                self.repetition_counter = 0
-
-            self.last_black_move = move
-        else:
-            print('unexpected error, piece.color not white or black')
-
     def move(self, piece, move, player, game=None):
 
         self.squares[move.initial_square.rank][move.initial_square.file].piece = None
@@ -134,14 +65,10 @@ class Board:
 
         if isinstance(piece, King):
             file_diff = abs(move.final_square.file - move.initial_square.file)
-            piece.moved = True
             piece.left_castling = False
             piece.right_castling = False
 
             if file_diff == 2:
-                self.king_rank = move.final_square.rank  # updated king pos is needed for possible following rook moves
-                self.king_file = move.final_square.file  # updated king pos is needed for possible following rook moves
-
                 if move.final_square.file == 2:
                     rank = 0 if piece.color == 'black' else 7
                     file = 0
@@ -161,13 +88,13 @@ class Board:
             self.player_pawn_promotion(screen, piece, move.final_square, game) if player else self.ai_pawn_promotion(piece, move)
 
         if isinstance(piece, Rook):
-            if not piece.moved:
-                king = self.squares[self.king_rank][self.king_file].piece
-                if move.initial_square.file == 0:
-                    king.left_castling = False
-                else:
-                    king.right_castling = False
-                piece.moved = True
+            rank = 0 if piece.color == 'black' else 7
+            possible_king = self.squares[rank][4].piece
+            if isinstance(possible_king, King):
+                if rank == move.initial_square.rank and move.initial_square.file == 0:
+                    possible_king.left_castling = False
+                elif rank == move.initial_square.rank and move.initial_square.file == 7:
+                    possible_king.right_castling = False
 
         self.move_played = True
         self.move_counter += 1
@@ -179,26 +106,25 @@ class Board:
         if set_history:
             last_piece = self.squares[move.final_square.rank][move.final_square.file].piece
             self.save_last_eaten_piece(last_piece)
+            self.minimax_move_counter += 1
 
         self.squares[move.initial_square.rank][move.initial_square.file].piece = None
         self.squares[move.final_square.rank][move.final_square.file].piece = piece
 
         if isinstance(piece, King):
             file_diff = abs(move.final_square.file - move.initial_square.file)
-            piece.moved = True
-            piece.left_castling = False
-            piece.right_castling = False
+            if not piece.lost_left_castling and piece.left_castling:
+                piece.left_castling = False
+                piece.lost_left_castling = self.minimax_move_counter
+            elif not piece.lost_right_castling and piece.right_castling:
+                piece.right_castling = False
+                piece.lost_right_castling = self.minimax_move_counter
 
             if file_diff == 2:
-                self.king_rank = move.final_square.rank  # updated king pos is needed for possible following rook moves
-                self.king_file = move.final_square.file  # updated king pos is needed for possible following rook moves
-                print(f'{self.squares[self.king_rank][self.king_file].piece.color} {self.squares[self.king_rank][self.king_file].piece.name} on square ({self.king_rank}, {self.king_file})')
                 if move.final_square.file == 2:
                     rank = 0 if piece.color == 'black' else 7
                     file = 0
                     rook = self.squares[rank][file].piece
-                    print('hallloooooooooo')
-                    print(f'making {piece.color} ({self.squares[rank][file].piece.color}) rook ({self.squares[rank][file].piece}) move from square ({rank, file})')
                     rook_move = Move(Square(rank, file), Square(rank, 3))
                     self.minimax_move(rook, rook_move, False)
 
@@ -206,8 +132,6 @@ class Board:
                     rank = 0 if piece.color == 'black' else 7
                     file = 7
                     rook = self.squares[rank][file].piece
-                    print('hallloooooooooo')
-                    print(f'making {piece.color} ({self.squares[rank][file].piece.color}) rook ({self.squares[rank][file].piece}) move from square ({rank, file})')
                     rook_move = Move(Square(rank, file), Square(rank, 5))
                     self.minimax_move(rook, rook_move, False)
 
@@ -216,17 +140,15 @@ class Board:
             self.ai_pawn_promotion(piece, move)
 
         if isinstance(piece, Rook):
-            if not piece.moved:
-                king = self.squares[self.king_rank][self.king_file].piece
-                if move.initial_square.file == 0:
-                    king.left_castling = False
-                else:
-                    king.right_castling = False
-                piece.first_move = True
-                piece.moved = True
-
-        self.move_played = True
-        self.move_counter += 1
+            rank = 0 if piece.color == 'black' else 7
+            possible_king = self.squares[rank][4].piece
+            if isinstance(possible_king, King):
+                if not possible_king.left_castling and not possible_king.lost_left_castling and move.initial_square.file == 0:
+                    possible_king.lost_left_castling = self.minimax_move_counter
+                    possible_king.left_castling = False
+                elif not possible_king.right_castling and not possible_king.lost_right_castling and move.initial_square.file == 7:
+                    possible_king.lost_right_castling = self.minimax_move_counter
+                    possible_king.right_castling = False
 
         self.last_minimax_move = move
 
@@ -237,7 +159,7 @@ class Board:
     def get_last_eaten_piece(self):
         return self.last_eaten_piece.pop()
 
-    def unmake_move(self, piece, move):
+    def unmake_move(self, piece, move, reduce_count=True):
         last_eaten_piece = self.get_last_eaten_piece()
 
         self.squares[move.initial_square.rank][move.initial_square.file].piece = piece
@@ -248,6 +170,13 @@ class Board:
 
         # revert castling
         if isinstance(piece, King):
+            if piece.lost_left_castling == self.minimax_move_counter:
+                piece.left_castling = True
+                piece.lost_left_castling = False
+            elif piece.lost_right_castling == self.minimax_move_counter:
+                piece.right_castling = True
+                piece.lost_right_castling = False
+
             if abs(move.final_square.file - move.initial_square.file) == 2:
                 rank = 0 if piece.color == 'black' else 7
                 initial_file = 0 if move.final_square.file == 2 else 7
@@ -257,24 +186,21 @@ class Board:
                 rook_move = Move(Square(rank, initial_file), Square(rank, final_file))
 
                 self.save_last_eaten_piece(None)
-                self.unmake_move(rook, rook_move)
+                self.unmake_move(rook, rook_move, False)
 
-                # give back possibility to castle
-                king = self.squares[rank][4].piece
-                if move.final_square.file == 2:
-                    king.left_castling = True
-                else:
-                    king.right_castling = True
+        if isinstance(piece, Rook):
+            rank = 0 if piece.color == 'black' else 7
+            possible_king = self.squares[rank][4].piece
+            if isinstance(possible_king, King):
+                if possible_king.lost_left_castling == self.minimax_move_counter:
+                    possible_king.left_castling = True
+                    possible_king.lost_left_castling = False
+                elif possible_king.lost_right_castling == self.minimax_move_counter:
+                    possible_king.right_castling = True
+                    possible_king.lost_right_castling = False
 
-            if isinstance(piece, Rook):
-                king = self.squares[self.king_rank][self.king_file].piece
-                if piece.first_move and not king.moved:
-                    if move.initial_square.file == 0:
-                        king.left_castling = True
-                    else:
-                        king.right_castling = True
-                    piece.first_move = False
-                    piece.moved = False
+        if reduce_count:
+            self.minimax_move_counter -= 1
 
     def ai_pawn_promotion(self, piece, move):
         if isinstance(piece, Pawn) and (move.final_square.rank == 0 or move.final_square.rank == 7):
@@ -1120,8 +1046,7 @@ class Board:
                 (self.king_rank + 0, self.king_file + 1),
             ]
 
-            print(piece.color, piece.name)
-            print('left, right castling:')
+            print(f'{piece.color} {piece.name} left, right castling:')
             print(piece.left_castling, piece.right_castling)
             for move in moves:
                 possible_move_rank, possible_move_file = move
