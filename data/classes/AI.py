@@ -46,7 +46,7 @@ class AI:
             moves = board.get_valid_moves(self.color)
             move = random.choice(moves)
 
-            board.ai_move_simulation(board.squares[move.initial_square.rank][move.initial_square.file].piece, move)
+            board.move(board.squares[move.initial_square.rank][move.initial_square.file].piece, move, False)
             return
 
         def random_test_improved():
@@ -57,7 +57,7 @@ class AI:
 
             random_move = random.choice(move_list)
             piece = board.squares[random_move.initial_square.rank][random_move.initial_square.file].piece
-            board.ai_move(piece, random_move)
+            board.move(piece, random_move, False)
 
         def play_try_to_promote_pawns():
             pawns = []
@@ -97,7 +97,7 @@ class AI:
 
                     if board.valid_move(piece, move):
                         promotion_piece = self.promotion_pieces[0]
-                        board.ai_move(piece, move, promotion_piece)
+                        board.move(piece, move, False)
                         return
 
         def play_berserk_killer():
@@ -131,7 +131,7 @@ class AI:
 
             if board.valid_move(piece, move):
                 promotion_piece = random.choice(self.promotion_pieces)
-                board.ai_move(piece, move, promotion_piece)
+                board.move(piece, move, False)
 
         def play_interstellar():
             evaluation, final_move = self.minimax_2(board, 4, -math.inf, math.inf, True)
@@ -149,14 +149,14 @@ class AI:
             piece = board.squares[final_move.initial_square.rank][final_move.initial_square.file].piece
 
             if final_move:
-                board.ai_move(piece, final_move, False)
+                board.move(piece, final_move, False)
                 print(' ')
                 print('AI MOVE PLAYED')
                 print(' ')
             return True
 
         def play_interstellar_improved():
-            evaluation, final_move = self.minimax_ascended(board, 5, -math.inf, math.inf, True)
+            evaluation, final_move = self.minimax_ascended(board, 3, -math.inf, math.inf, True)
 
             print(' ')
             print(f'minimax count: {self.minimax_count}')
@@ -179,7 +179,7 @@ class AI:
             self.min_pruning_count = 0
 
             if final_move:
-                board.ai_move(piece, final_move, False)
+                board.move(piece, final_move, False)
                 print(' ')
                 print('AI MOVE PLAYED')
                 print(' ')
@@ -199,9 +199,9 @@ class AI:
                 move = self.castle_moves[-1]
                 self.castle_moves.pop()
                 piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
-                board.ai_move_simulation(piece, move, True)
+                board.minimax_move(piece, move, True)
                 board.unmake_move(piece, move)
-                board.ai_move_simulation(piece, move)
+                board.move(piece, move, False)
                 return
             else:
                 while True:
@@ -211,9 +211,9 @@ class AI:
             if board.move_counter == 0:
                 move = Move(Square(6, 3), Square(4, 3))
                 piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
-                board.ai_move_simulation(piece, move, True)
+                board.minimax_move(piece, move, True)
                 board.unmake_move(piece, move)
-                board.ai_move_simulation(piece, move)
+                board.move(piece, move, False)
             else:
                 while True:
                     x = 32947
@@ -246,7 +246,7 @@ class AI:
                         AI.count_moves += 1
                         AI.test_moves[AI.counter][0] = AI.resulting_moves
 
-                    board.ai_move_simulation(piece, move, True)
+                    board.minimax_move(piece, move, True)
                     calc_moves(False, depth - 1) if turn else calc_moves(True, depth - 1)
                     board.unmake_move(piece, move)
                 return
@@ -339,7 +339,7 @@ class AI:
                 print(piece.color, piece.name)
                 print((move.initial_square.rank, move.initial_square.file), (move.final_square.rank, move.final_square.file))
 
-                board.ai_move_simulation(piece, move, True)
+                board.minimax_move(piece, move, True)
                 evaluation = self.minimax_ascended(board, depth - 1, alpha, beta, False)
 
                 if isinstance(piece, King) and abs(move.initial_square.file - move.final_square.file) == 2:
@@ -377,7 +377,7 @@ class AI:
                       (move.final_square.rank, move.final_square.file))
                 print(piece.color, piece.name)
 
-                board.ai_move_simulation(piece, move, True)
+                board.minimax_move(piece, move, True)
                 evaluation = self.minimax_ascended(board, depth - 1, alpha, beta, True)
 
                 if isinstance(piece, King) and abs(move.initial_square.file - move.final_square.file) == 2:
@@ -427,7 +427,7 @@ class AI:
             for move in board.get_valid_moves(player_color):
                 piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
 
-                board.ai_move_simulation(piece, move, True)
+                board.minimax_move(piece, move, True)
                 evaluation = self.minimax_improved_2(board, depth - 1, alpha, beta, False)
                 board.unmake_move(piece, move)
 
@@ -450,7 +450,7 @@ class AI:
             for move in board.get_valid_moves(player_color):
                 piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
 
-                board.ai_move_simulation(piece, move, True)
+                board.minimax_move(piece, move, True)
                 evaluation = self.minimax_improved_2(board, depth - 1, alpha, beta, True)
                 board.unmake_move(piece, move)
 
@@ -499,7 +499,7 @@ class AI:
                 print(f'depth: {depth}')
                 print(f'{player_color} move: {piece.name} to ({move.final_square.rank, move.final_square.file})')
 
-                board.ai_move_simulation(piece, move, True)
+                board.minimax_move(piece, move, True)
                 evaluation = self.minimax_improved(board, depth - 1, alpha, beta, False)
                 board.unmake_move(piece, move)
 
@@ -534,7 +534,7 @@ class AI:
                 print(f'depth: {depth}')
                 print(f'{player_color} move: {piece.name if piece.name else None} to ({move.final_square.rank, move.final_square.file})')
 
-                board.ai_move_simulation(piece, move, True)
+                board.minimax_move(piece, move, True)
                 evaluation = self.minimax_improved(board, depth - 1, alpha, beta, True)
                 board.unmake_move(piece, move)
 
@@ -587,7 +587,7 @@ class AI:
                 print(f'depth: {depth}')
                 print(f'{player_color} move: {piece.name} to ({move.final_square.rank, move.final_square.file})')
 
-                board.ai_move_simulation(piece, move, True)
+                board.minimax_move(piece, move, True)
                 evaluation = self.minimax(board, depth - 1, alpha, beta, False)
                 board.unmake_move(piece, move)
 
@@ -622,7 +622,7 @@ class AI:
                 print(f'depth: {depth}')
                 print(f'{player_color} move: {piece.name if piece.name else None} to ({move.final_square.rank, move.final_square.file})')
 
-                board.ai_move_simulation(piece, move, True)
+                board.minimax_move(piece, move, True)
                 evaluation = self.minimax(board, depth - 1, alpha, beta, True)
                 board.unmake_move(piece, move)
 
@@ -667,7 +667,7 @@ class AI:
             for move in board.calculate_all_valid_moves(player_color):
                 piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
 
-                board.ai_move_simulation(piece, move, True)
+                board.minimax_move(piece, move, True)
                 evaluation = self.minimax_2(board, depth - 1, alpha, beta, False)
                 board.unmake_move(piece, move)
 
@@ -690,7 +690,7 @@ class AI:
             for move in board.calculate_all_valid_moves(player_color):
                 piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
 
-                board.ai_move_simulation(piece, move, True)
+                board.minimax_move(piece, move, True)
                 evaluation = self.minimax_2(board, depth - 1, alpha, beta, True)
                 board.unmake_move(piece, move)
 
