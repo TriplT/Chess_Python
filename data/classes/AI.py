@@ -40,7 +40,7 @@ class AI:
 
         # engines
         def play_random():
-            moves = board.get_valid_moves(self.color)
+            moves = board.get_valid_moves(self.color, True)
             move = random.choice(moves)
 
             board.move(board.squares[move.initial_square.rank][move.initial_square.file].piece, move, False)
@@ -49,7 +49,7 @@ class AI:
         def random_test_improved():
             # random_move = random.choice(board.get_valid_moves(self.color))
             move_list = []
-            for random_move in board.get_valid_moves(self.color):
+            for random_move in board.get_valid_moves(self.color, True):
                 move_list.append(random_move)
 
             random_move = random.choice(move_list)
@@ -229,7 +229,7 @@ class AI:
                     else:
                         player_color = 'white'
 
-                valid_moves = board.get_valid_moves(player_color, turn)
+                valid_moves = board.get_valid_moves(player_color, True)
 
                 for move in valid_moves:
                     piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
@@ -313,7 +313,7 @@ class AI:
         # if board.squares[4][6].piece:
         #    print(f'{board.squares[4][6].piece.color} {board.squares[4][6].piece.name} should be on square 4, 6')
 
-        valid_moves = board.get_valid_moves(player_color, max_player)
+        valid_moves = board.get_valid_moves(player_color, False, max_player)
         board.game_end_minimax(player_color)
 
         if board.ai_game_ended:
@@ -421,7 +421,7 @@ class AI:
             max_eval = -math.inf
             max_move = -math.inf
 
-            for move in board.get_valid_moves(player_color):
+            for move in board.get_valid_moves(player_color, False, max_player):
                 piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
 
                 board.minimax_move(piece, move, True)
@@ -444,7 +444,7 @@ class AI:
             min_eval = math.inf
             min_move = math.inf
 
-            for move in board.get_valid_moves(player_color):
+            for move in board.get_valid_moves(player_color, False, max_player):
                 piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
 
                 board.minimax_move(piece, move, True)
@@ -490,7 +490,7 @@ class AI:
             max_eval = -math.inf
             max_move = -math.inf
 
-            for move in board.get_valid_moves(player_color):
+            for move in board.get_valid_moves(player_color, False, max_player):
                 piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
 
                 print(f'depth: {depth}')
@@ -525,7 +525,7 @@ class AI:
             min_eval = math.inf
             min_move = math.inf
 
-            for move in board.get_valid_moves(player_color):
+            for move in board.get_valid_moves(player_color, False, max_player):
                 piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
 
                 print(f'depth: {depth}')

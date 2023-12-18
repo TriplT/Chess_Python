@@ -259,9 +259,6 @@ class Board:
             piece.en_passant = False
 
     def game_end(self, color):
-        # stalemate
-        checkmate = False
-        stalemate = True
         piece_list = []
         insufficient_material = False
 
@@ -271,22 +268,6 @@ class Board:
                 p = self.squares[rank][file].piece
                 if self.squares[rank][file].occupied():
                     piece_list.append(p)
-                '''
-                # checkmate and stalemate
-                if self.squares[rank][file].occupied_by_teammate(color):
-                    self.calculate_valid_moves(p, rank, file, bool=True)
-                    if p.moves:
-                        stalemate = False
-                    p.moves = []
-                if self.squares[rank][file].occupied_by_opponent(color):
-                    self.calculate_valid_moves(p, rank, file, bool=True)
-                    for move in p.moves:
-                        if isinstance(move.final_square.piece, King):
-                            checkmate = True
-                    p.moves = []
-                '''
-        stalemate = False
-        checkmate = False
 
         # insufficient material
         knight_counter = 0
@@ -304,6 +285,8 @@ class Board:
                     knight_counter += 1
                 elif isinstance(piece, Bishop):
                     bishop_counter += 1
+                    # was hat das auf sich??
+                    # die zeile und die nächste machen einfach keinen sinn
                     color = piece.color
                     if bishop_counter == 2 and not color == piece.color:
                         insufficient_material = True
@@ -324,12 +307,6 @@ class Board:
         elif self.move_counter == 50:
             self.game_ended = True
             self.win_message = '50 move-rule'
-        elif stalemate and checkmate:
-            self.game_ended = True
-            self.win_message = 'checkmate'
-        elif stalemate:
-            self.game_ended = True
-            self.win_message = 'stalemate'
 
         self.move_played = False
 
@@ -339,10 +316,13 @@ class Board:
                 self.squares[rank][file].piece = None
         self.current_moves = []
         self.last_move = None
+        self.last_minimax_move = False
         self.move_played = False
         self.win_message = False
         self.game_ended = False
         self.ai_game_ended = False
+        self.add_startposition('white')
+        self.add_startposition('black')
 
     def save_own_square_pieces(self, color):
         lst = []
@@ -430,6 +410,11 @@ class Board:
 
         self.squares[rank_piece][3] = Square(rank_piece, 3, Queen(color))
 
+    def add_startpositio(self, color):
+
+        if color == 'white':
+            self.squares[4][4] = Square(4, 4, Rook('white'))
+
     # improvable, color is being used, its buggy
     def game_end_minimax(self, color):
         piece_list = []
@@ -477,15 +462,15 @@ class Board:
             self.evaluation = 0.0
             self.ai_game_ended = True
 
-    def get_valid_moves(self, color, max_player=True):
+    def get_valid_moves(self, color, player, max_player=True):
 
         self.calculate_enemy_attacking_moves('white' if color == 'black' else 'black')
         if self.enemy_checking_squares:
             # because the king is in check there will only be moves calculated that put the king out of check
-            return self.in_check_valid_moves(color, max_player)
+            return self.in_check_valid_moves(color, player, max_player)
         else:
             # because the king is NOT in check moves can be calculated easily
-            return self.no_check_valid_moves(color)
+            return self.no_check_valid_moves(color, player)
 
     def calculate_enemy_attacking_moves(self, color):
 
@@ -686,7 +671,7 @@ class Board:
                             (0, -1),
                             (1, 0)])
 
-    def in_check_valid_moves(self, color, max_player=True):
+    def in_check_valid_moves(self, color, player, max_player=True):
         # WAS HT DAS AUF SICH MIT DEM FINAL PIECE final(rank, file, FINAL PIECE) ?????
         def pawn_moves():
             promotion_pieces = [Queen, Knight, Bishop, Rook]
@@ -747,7 +732,7 @@ class Board:
                                         valid_moves.append(move)
 
             # please add special case en passant and check whether the pawn that's being killed is a pinned piece
-            if self.last_move is not None:
+            if self.last_move:
                 last_initial = self.last_move.initial_square
                 last_final = self.last_move.final_square
 
@@ -905,14 +890,18 @@ class Board:
 
         # calculate checkmate
         if not valid_moves:
-            self.ai_game_ended = True
-            if max_player:
-                self.evaluation = - 10000.0 + self.move_counter
+            if player:
+                self.win_message = 'checkmate'
+                self.game_ended = True
             else:
-                self.evaluation = 10000.0 - self.move_counter
+                self.ai_game_ended = True
+                if max_player:
+                    self.evaluation = - 10000.0 + self.move_counter
+                else:
+                    self.evaluation = 10000.0 - self.move_counter
         return valid_moves
 
-    def no_check_valid_moves(self, color):
+    def no_check_valid_moves(self, color, player):
         valid_moves = []
 
         def pawn_moves():
@@ -966,7 +955,7 @@ class Board:
                             else:
                                 valid_moves.append(move)
 
-            if self.last_move is not None:
+            if self.last_move:
                 last_initial = self.last_move.initial_square
                 last_final = self.last_move.final_square
 
@@ -1124,8 +1113,13 @@ class Board:
 
         # calculate stalemate
         if not valid_moves:
-            self.ai_game_ended = True
-            self.evaluation = 0
+            if player:
+                self.win_message = 'stalemate'
+                self.game_ended = True
+            else:
+                self.ai_game_ended = True
+                self.evaluation = 0
+
         return valid_moves
 
     '''

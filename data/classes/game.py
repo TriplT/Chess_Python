@@ -24,7 +24,7 @@ class Game:
             self.player = 'white'
 
     def calc_player_valid_moves(self):
-        self.player_valid_moves = self.board.get_valid_moves(self.player)
+        self.player_valid_moves = self.board.get_valid_moves(self.player, True)
 
     def ai_turn(self, board, ai):
         if self.player == ai.color and not board.game_ended and not board.move_played:
@@ -34,15 +34,15 @@ class Game:
                 self.calc_player_valid_moves()
 
     # check if self.player is indeed white when white wins or if it already changed to black
-    def game_end_100ava(self, board, message):
+    def game_end_100ava(self, board):
         if self.game_run_through <= 99:
-            if message == 'checkmate':
+            if board.win_message == 'checkmate':
                 if self.player == 'black':
                     self.white_wins += 1
                 else:
                     self.black_wins += 1
-            elif message == 'stalemate' or message == 'insufficient material' \
-                    or message == 'repetition' or message == '50 move-rule':
+            elif board.win_message == 'stalemate' or board.win_message == 'insufficient material' \
+                    or board.win_message == 'repetition' or board.win_message == '50 move-rule':
                 self.draws += 1
 
             if self.game_run_through == 99:
@@ -58,8 +58,6 @@ class Game:
                 print(self.game_run_through)
                 print(f'white wins: {self.white_wins} draws: {self.draws} black wins: {self.black_wins}')
                 board.reset_board()
-                board.add_startposition('white')
-                board.add_startposition('black')
 
     def game_end_display(self, screen, message, width, height):
 
@@ -97,29 +95,23 @@ class Game:
         if x_coord < dragger.mouseX < (x_coord + width) and y_coord - height - height - (height/4)\
                 < dragger.mouseY < (y_coord - height - height - (height/4) + height):
             board.reset_board()
-            board.add_startposition('white')
-            board.add_startposition('black')
             self.game_mode = 'pvp'
             self.player = 'white'
+            self.calc_player_valid_moves()
         elif x_coord < dragger.mouseX < (x_coord + width) and y_coord - height - (height / 4) \
                 < dragger.mouseY < (y_coord - height - (height / 4) + height):
             board.reset_board()
-            board.add_startposition('white')
-            board.add_startposition('black')
             self.game_mode = 'pva'
             self.player = 'white'
+            self.calc_player_valid_moves()
         elif x_coord < dragger.mouseX < (x_coord + width) and y_coord + (height / 4) \
                 < dragger.mouseY < (y_coord + (height / 4) + height):
             board.reset_board()
-            board.add_startposition('white')
-            board.add_startposition('black')
             self.game_mode = 'ava'
             self.player = 'white'
         elif x_coord < dragger.mouseX < (x_coord + width) and y_coord + height + (height * 3 / 4) \
                 < dragger.mouseY < (y_coord + height + (height * 3 / 4) + height):
             board.reset_board()
-            board.add_startposition('white')
-            board.add_startposition('black')
             self.game_mode = '100ava'
             self.player = 'white'
             self.game_run_through = 0

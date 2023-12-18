@@ -138,11 +138,12 @@ def main():
             print_last_move(screen, board)
             print_pieces(screen, board, dragger)
 
+        # make main loop be stopped while minimax is being calculated
         if board.move_played:
             board.game_end(game.player)
         if board.win_message:
             if game.game_mode == '100ava':
-                game.game_end_100ava(board, board.win_message)
+                game.game_end_100ava(board)
             else:
                 game.game_end_display(screen, board.win_message, 450, 130)
 
