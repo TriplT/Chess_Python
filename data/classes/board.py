@@ -1046,8 +1046,6 @@ class Board:
                 (self.king_rank + 0, self.king_file + 1),
             ]
 
-            print(f'{piece.color} {piece.name} left, right castling:')
-            print(piece.left_castling, piece.right_castling)
             for move in moves:
                 possible_move_rank, possible_move_file = move
                 if Square.in_range(possible_move_rank, possible_move_file):
