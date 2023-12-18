@@ -88,7 +88,7 @@ class Game:
         screen.blit(text, text_rect)
         screen.blit(text_2, text_2_rect)
 
-    def check_game_mode_buttons(self, dragger, board, width, height):
+    def check_game_mode_buttons(self, dragger, board, width, height, ai_1, ai_2):
         x_coord = screen_x / 20
         y_coord = screen_y / 2
 
@@ -97,23 +97,31 @@ class Game:
             board.reset_board()
             self.game_mode = 'pvp'
             self.player = 'white'
+            ai_1.color = None
+            ai_2.color = None
             self.calc_player_valid_moves()
         elif x_coord < dragger.mouseX < (x_coord + width) and y_coord - height - (height / 4) \
                 < dragger.mouseY < (y_coord - height - (height / 4) + height):
             board.reset_board()
             self.game_mode = 'pva'
             self.player = 'white'
+            ai_1.color = 'black'
+            ai_2.color = None
             self.calc_player_valid_moves()
         elif x_coord < dragger.mouseX < (x_coord + width) and y_coord + (height / 4) \
                 < dragger.mouseY < (y_coord + (height / 4) + height):
             board.reset_board()
             self.game_mode = 'ava'
+            ai_1.color = 'white'
+            ai_2.color = 'black'
             self.player = 'white'
         elif x_coord < dragger.mouseX < (x_coord + width) and y_coord + height + (height * 3 / 4) \
                 < dragger.mouseY < (y_coord + height + (height * 3 / 4) + height):
             board.reset_board()
             self.game_mode = '100ava'
             self.player = 'white'
+            ai_1.color = 'white'
+            ai_2.color = 'black'
             self.game_run_through = 0
 
     @staticmethod

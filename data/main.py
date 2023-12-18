@@ -62,16 +62,7 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 dragger.update_mouse(event.pos)
-                game.check_game_mode_buttons(dragger, board, 350, 120)
-                if game.game_mode == 'pvp':
-                    ai_1.color = None
-                    ai_2.color = None
-                elif game.game_mode == 'pva':
-                    ai_1.color = 'black'
-                    ai_2.color = None
-                elif game.game_mode == 'ava' or '100ava':
-                    ai_1.color = 'white'
-                    ai_2.color = 'black'
+                game.check_game_mode_buttons(dragger, board, 350, 120, ai_1, ai_2)
 
                 if 560 < dragger.mouseX < 1360 and 140 < dragger.mouseY < 940:
                     clicked_file = int((dragger.mouseX - (screen_x // 2 - 4 * square_size)) // square_size)
