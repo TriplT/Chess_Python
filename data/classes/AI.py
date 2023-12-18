@@ -29,9 +29,7 @@ class AI:
 
         self.castle_moves = [Move(Square(7, 4), Square(7, 6)), Move(Square(7, 6), Square(5, 5)),
                              Move(Square(7, 5), Square(5, 7)), Move(Square(6, 6), Square(4, 6))]
-        self.one_moves = [Move(Square(6, 5), Square(4, 5)), Move(Square(6, 6), Square(4, 6))]
-        self.one = False
-        self.two_moves = [Move(Square(0, 0), Square(0, 1)), Move(Square(0, 1), Square(2, 2))]
+
 
     def play_moves(self, board, engine='alea iacta est'):
         # print(board.evaluate_position(self.color))
