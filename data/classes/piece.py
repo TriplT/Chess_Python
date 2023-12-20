@@ -11,9 +11,10 @@ class Piece:
     def preload_images(cls):
 
         # chess move preview circle
-        img_path = os.path.join(f'images/move_preview_circle.png')
-        img = pygame.image.load(img_path).convert_alpha()
-        cls.other_images[f'move_preview_circle'] = pygame.transform.smoothscale(img, (100, 100))
+        for name in ['move_preview_circle', 'capture_preview_circle']:
+            img_path = os.path.join(f'images/{name}.png')
+            img = pygame.image.load(img_path).convert_alpha()
+            cls.other_images[f'{name}'] = pygame.transform.smoothscale(img, (100, 100))
 
         # chess piece images
         for color in ['white', 'black']:
@@ -37,7 +38,6 @@ class Piece:
         self.img_rect = img_rect
 
     '''
-    # append a move into the self.moves list
     def add_move(self, move):
         self.moves.append(move)
 

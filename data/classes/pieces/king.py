@@ -10,4 +10,4 @@ class King(Piece):
         self.lost_left_castling = False
         self.lost_right_castling = False
 
-        super().__init__('king', color, 10000.0)
+        super().__init__('king', color, 999999.0)

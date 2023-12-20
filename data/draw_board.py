@@ -33,7 +33,7 @@ def draw_board(screen):
 
             if rank == 7:
                 color = (118, 150, 86) if (rank + file) % 2 == 0 else (255, 255, 255)
-                label = pygame.font.SysFont('monospace', 18, bold=True).render(Square.get_letter(file), True, color)
+                label = pygame.font.SysFont('monospace', 18, bold=True).render(Square.get_letter(Square, file), True, color)
                 label_pos = ((screen_x / 2 - 4 * square_size) + (file + 1) * square_size - 17,
                              (screen_y / 2 - 4 * square_size) + files * square_size - 20)
 

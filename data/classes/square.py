@@ -36,9 +36,7 @@ class Square:
 
         return True
 
-    @staticmethod
-    def get_letter(file):
-        LETTERS = {0: 'a', 1: 'b', 2: 'c', 3: 'd', 4: 'e', 5: 'f', 6: 'g', 7: 'h'}
-        return LETTERS[file]
+    def get_letter(self, file):
+        return self.LETTERS[file]
 
 

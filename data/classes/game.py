@@ -15,6 +15,7 @@ class Game:
         self.black_wins = 0
         self.draws = 0
 
+        print(self.player)
         self.calc_player_valid_moves()
 
     def turn_made(self):

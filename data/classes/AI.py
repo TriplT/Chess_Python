@@ -160,9 +160,12 @@ class AI:
             print(f'alpha beta pruning count: {self.alpha_beta_pruning_count}')
             print(f'max_player pruning count: {self.max_pruning_count}')
             print(f'min_player pruning count: {self.min_pruning_count}')
+            print('ayayayayayayayayayayayayayayayayayayayayayayayayayayayayaya')
+            print('ayayayayayayayayayayayayayayayayayayayayayayayayayayayayaya')
+            print('ayayayayayayayayayayayayayayayayayayayayayayayayayayayayaya')
             print(' ')
             print(f'this is the final eval: {evaluation}')
-            print(f'this is the final move: {final_move}')
+            print(f'this is the final move:')
             print(board.squares[final_move.initial_square.rank][final_move.initial_square.file].piece.color,
                   board.squares[final_move.initial_square.rank][final_move.initial_square.file].piece.name)
             print(f'initial sq: ({final_move.initial_square.rank}, {final_move.initial_square.file}) final sq: '
@@ -310,10 +313,17 @@ class AI:
         print(' ')
         print(self.minimax_count)
         print(f'depth: {depth}, color: {player_color}')
-        # if board.squares[4][6].piece:
-        #    print(f'{board.squares[4][6].piece.color} {board.squares[4][6].piece.name} should be on square 4, 6')
 
         valid_moves = board.get_valid_moves(player_color, False, max_player)
+
+        if board.squares[2][2].occupied():
+            print(f'{board.squares[2][2].piece.color} {board.squares[2][2].piece.name} on square 2, 2')
+        '''
+        if depth == 3:
+            for move in valid_moves:
+                print(board.squares[move.initial_square.rank][move.initial_square.file].piece.color, board.squares[move.initial_square.rank][move.initial_square.file].piece.name)
+                print(f'{move.initial_square.rank, move.initial_square.file} to {move.final_square.rank, move.final_square.file}')
+        '''
         board.game_end_minimax(player_color)
 
         if board.ai_game_ended:
@@ -330,21 +340,18 @@ class AI:
             for move in valid_moves:
                 piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
 
-                if isinstance(piece, King) and abs(move.initial_square.file - move.final_square.file) == 2:
-                    print(f'minimax king castling: {piece.color} {piece.name}')
                 print('move')
                 print(piece.color, piece.name)
-                print((move.initial_square.rank, move.initial_square.file), (move.final_square.rank, move.final_square.file))
+                print((move.initial_square.rank, move.initial_square.file),
+                (move.final_square.rank, move.final_square.file))
 
                 board.minimax_move(piece, move, True)
                 evaluation = self.minimax_ascended(board, depth - 1, alpha, beta, False)
 
-                if isinstance(piece, King) and abs(move.initial_square.file - move.final_square.file) == 2:
-                    print(f'minimax unmake king castling: {piece.color} {piece.name}')
                 print('unmake move')
                 print(piece.color, piece.name)
                 print((move.initial_square.rank, move.initial_square.file),
-                      (move.final_square.rank, move.final_square.file))
+                (move.final_square.rank, move.final_square.file))
 
                 board.unmake_move(piece, move)
 
@@ -367,22 +374,18 @@ class AI:
             for move in valid_moves:
                 piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
 
-                if isinstance(piece, King) and abs(move.initial_square.file - move.final_square.file) == 2:
-                    print(f'minimax king castling: {piece.color} {piece.name}')
                 print('move')
                 print(piece.color, piece.name)
                 print((move.initial_square.rank, move.initial_square.file),
-                      (move.final_square.rank, move.final_square.file))
+                (move.final_square.rank, move.final_square.file))
 
                 board.minimax_move(piece, move, True)
                 evaluation = self.minimax_ascended(board, depth - 1, alpha, beta, True)
 
-                if isinstance(piece, King) and abs(move.initial_square.file - move.final_square.file) == 2:
-                    print(f'minimax unmake king castling: {piece.color} {piece.name}')
                 print('unmake move')
                 print(piece.color, piece.name)
                 print((move.initial_square.rank, move.initial_square.file),
-                      (move.final_square.rank, move.final_square.file))
+                (move.final_square.rank, move.final_square.file))
 
                 board.unmake_move(piece, move)
 

@@ -138,7 +138,7 @@ def main():
             else:
                 game.game_end_display(screen, board.win_message, 450, 130)
 
-        move_preview_circle_display(screen, dragger, game)
+        move_preview_circle_display(screen, board, dragger, game)
         game.draw_game_mode_buttons(screen, 350, 120)
         pygame.display.flip()
         clock.tick(60)

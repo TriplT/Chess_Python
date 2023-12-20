@@ -84,7 +84,7 @@ class Board:
                     self.move(rook, rook_move, True, game) if player else self.move(rook, rook_move, False, game)
 
         if isinstance(piece, Pawn):
-            self.en_passant(piece, move, self.last_move)
+            self.en_passant(piece, move, self.last_move, player)
             self.player_pawn_promotion(screen, piece, move.final_square, game) if player else self.ai_pawn_promotion(piece, move)
 
         if isinstance(piece, Rook):
@@ -253,10 +253,11 @@ class Board:
                             self.squares[last.rank][last.file].piece = Knight(piece.color)
                             return
 
-    def en_passant(self, piece, move, last_move):
+    def en_passant(self, piece, move, last_move, player=False):
         if piece.en_passant and move.final_square.file == last_move.final_square.file:
             self.squares[last_move.final_square.rank][last_move.final_square.file].piece = None
-            piece.en_passant = False
+            if not player:
+                piece.en_passant = False
 
     def game_end(self, color):
         piece_list = []
@@ -272,7 +273,7 @@ class Board:
         # insufficient material
         knight_counter = 0
         bishop_counter = 0
-        # king vs king
+
         if len(piece_list) == 2:
             insufficient_material = True
         elif len(piece_list) == 3:
@@ -309,6 +310,15 @@ class Board:
             self.win_message = '50 move-rule'
 
         self.move_played = False
+
+    def getPiece(self, rank, file):
+        return self.squares[rank][file].piece
+
+    def getPieceMoveInitial(self, move):
+        return self.squares[move.initial_square.rank][move.initial_square.file].piece
+
+    def getPieceMoveFinal(self, move):
+        return self.squares[move.final_square.rank][move.final_square.file].piece
 
     def reset_board(self):
         for rank in range(ranks):
@@ -409,11 +419,6 @@ class Board:
         self.squares[rank_piece][4] = Square(rank_piece, 4, King(color))
 
         self.squares[rank_piece][3] = Square(rank_piece, 3, Queen(color))
-
-    def add_startpositio(self, color):
-
-        if color == 'white':
-            self.squares[4][4] = Square(4, 4, Rook('white'))
 
     # improvable, color is being used, its buggy
     def game_end_minimax(self, color):
