@@ -1,1 +1,1 @@
-Das Programm kann auf Grund von meinen import statements, die durch den ganzen Pfad bestimmt wurden, möglicherweise auf deiner Software nicht funktionieren.
+Das Programm kann auf Grund meiner import statements, die durch einen ganzen Pfad bestimmt wurden, möglicherweise auf deiner Software nicht funktionieren.
