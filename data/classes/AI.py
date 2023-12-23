@@ -289,8 +289,7 @@ class AI:
 
         self.minimax_count += 1
 
-        print(self.minimax_count)
-        print(f'move counter: {board.move_counter}')
+        print(f'minimax: {self.minimax_count}')
         print(f'color: {player_color}')
 
         valid_moves = board.get_valid_moves(player_color, False, max_player)
@@ -316,9 +315,10 @@ class AI:
                 piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
 
                 print('move')
-
+                # print(piece.color, piece.name)
                 print((move.initial_square.rank, move.initial_square.file),
                 (move.final_square.rank, move.final_square.file))
+                # this line is here for bug fixing. remove this and uncomment to one before
                 print(piece.color, piece.name)
 
                 board.minimax_move(piece, move, True)
