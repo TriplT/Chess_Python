@@ -27,9 +27,6 @@ class AI:
         self.max_pruning_count = 0
         self.min_pruning_count = 0
 
-        self.castle_moves = [Move(Square(7, 4), Square(7, 6)), Move(Square(7, 6), Square(5, 5)),
-                             Move(Square(7, 5), Square(5, 7)), Move(Square(6, 6), Square(4, 6))]
-
     def play_moves(self, board, engine='alea iacta est'):
         # print(board.evaluate_position(self.color))
         self.squares_with_piece = board.save_own_square_pieces(self.color)
@@ -131,7 +128,7 @@ class AI:
                 board.move(piece, move, False)
 
         def play_interstellar():
-            evaluation, final_move = self.minimax_2(board, 4, -math.inf, math.inf, True)
+            evaluation, final_move = self.minimax_2(board, 3, -math.inf, math.inf, True)
 
             print(' ')
             print(f'minimax count: {self.minimax_count}')
@@ -153,7 +150,7 @@ class AI:
             return True
 
         def play_interstellar_improved():
-            evaluation, final_move = self.minimax_ascended(board, 3, -math.inf, math.inf, True)
+            evaluation, final_move = self.minimax_ascended(board, 4, -math.inf, math.inf, True)
 
             print(' ')
             print(f'minimax count: {self.minimax_count}')
@@ -180,6 +177,8 @@ class AI:
                 print(' ')
                 print('AI MOVE PLAYED')
                 print(' ')
+            if board.squares[2][2].occupied():
+                print(f'{board.squares[2][2].piece.color} {board.squares[2][2].piece.name} on square 2, 2')
             return True
 
         def move_amount():
@@ -190,30 +189,6 @@ class AI:
             print(f'valid_moves: {len(board.get_valid_moves(self.color, True))}')
             while True:
                 x = 349737
-
-        def castling():
-            if self.castle_moves:
-                move = self.castle_moves[-1]
-                self.castle_moves.pop()
-                piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
-                board.minimax_move(piece, move, True)
-                board.unmake_move(piece, move)
-                board.move(piece, move, False)
-                return
-            else:
-                while True:
-                    x = 3948
-
-        def unmake():
-            if board.move_counter == 0:
-                move = Move(Square(6, 3), Square(4, 3))
-                piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
-                board.minimax_move(piece, move, True)
-                board.unmake_move(piece, move)
-                board.move(piece, move, False)
-            else:
-                while True:
-                    x = 32947
 
         def test_moves():
             def calc_moves(turn, depth):
@@ -262,16 +237,10 @@ class AI:
                 x = 2344
 
         # engine names
-        if engine == 'unmake':  # plays random moves throughout the game
-            unmake()
-
-        if engine == 'castle':  # plays random moves throughout the game
-            castling()
-
-        if engine == 'amount':  # plays random moves throughout the game
+        if engine == 'amount':  # bug fix
             move_amount()
 
-        if engine == 'test':  # plays random moves throughout the game
+        if engine == 'test':  # bug fix
             test_moves()
 
         if engine == 'alea iacta est':  # plays random moves throughout the game
@@ -297,6 +266,19 @@ class AI:
 
     def minimax_ascended(self, board, depth, alpha, beta, max_player, best_move='000000000 error 00000000'):
 
+        print(' ')
+        print(f'depth: {depth}')
+        if depth == 0:
+            board.evaluate_position(self.color)
+            print(f'evaluate position: {board.evaluation}')
+
+        if board.ai_game_ended:
+            board.ai_game_ended = False
+            return board.evaluation, best_move
+        elif depth == 0:
+            board.evaluate_position(self.color)
+            return board.evaluation, best_move
+
         if max_player:
             player_color = self.color
         else:
@@ -307,28 +289,24 @@ class AI:
 
         self.minimax_count += 1
 
-        print(' ')
         print(self.minimax_count)
-        print(f'depth: {depth}, color: {player_color}')
+        print(f'move counter: {board.move_counter}')
+        print(f'color: {player_color}')
 
         valid_moves = board.get_valid_moves(player_color, False, max_player)
-
-        if board.squares[2][2].occupied():
-            print(f'{board.squares[2][2].piece.color} {board.squares[2][2].piece.name} on square 2, 2')
         '''
+        if board.squares[2][2].occupied():
+            if isinstance(board.squares[2][2].piece, Knight) or board.move_counter == 1:
+                print(f'{board.squares[2][2].piece.color} {board.squares[2][2].piece.name} on square 2, 2')
+            else:
+                exit(1)
+
         if depth == 3:
             for move in valid_moves:
                 print(board.squares[move.initial_square.rank][move.initial_square.file].piece.color, board.squares[move.initial_square.rank][move.initial_square.file].piece.name)
                 print(f'{move.initial_square.rank, move.initial_square.file} to {move.final_square.rank, move.final_square.file}')
         '''
         board.game_end_minimax(player_color)
-
-        if board.ai_game_ended:
-            board.ai_game_ended = False
-            return board.evaluation, best_move
-        elif depth == 0:
-            board.evaluate_position(player_color)
-            return board.evaluation, best_move
 
         if max_player:
             max_eval = -math.inf
@@ -338,9 +316,10 @@ class AI:
                 piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
 
                 print('move')
-                print(piece.color, piece.name)
+
                 print((move.initial_square.rank, move.initial_square.file),
                 (move.final_square.rank, move.final_square.file))
+                print(piece.color, piece.name)
 
                 board.minimax_move(piece, move, True)
                 evaluation = self.minimax_ascended(board, depth - 1, alpha, beta, False)

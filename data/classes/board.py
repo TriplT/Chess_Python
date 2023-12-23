@@ -58,6 +58,22 @@ class Board:
             for file in range(files):
                 self.squares[rank][file] = Square(rank, file)
 
+    def reset_board(self):
+        for rank in range(ranks):
+            for file in range(files):
+                self.squares[rank][file].piece = None
+        self.current_moves = []
+        self.last_move = None
+        self.last_minimax_move = False
+        self.move_counter = 0
+        self.minimax_move_counter = 0
+        self.move_played = False
+        self.win_message = False
+        self.game_ended = False
+        self.ai_game_ended = False
+        self.add_startposition('white')
+        self.add_startposition('black')
+
     def move(self, piece, move, player, game=None):
 
         self.squares[move.initial_square.rank][move.initial_square.file].piece = None
@@ -297,7 +313,7 @@ class Board:
         # 50 move-rule
         if len(piece_list) != self.last_num_of_pieces:
             self.last_num_of_pieces = len(piece_list)
-            self.move_counter = 0
+
 
         if insufficient_material:
             self.game_ended = True
@@ -319,20 +335,6 @@ class Board:
 
     def getPieceMoveFinal(self, move):
         return self.squares[move.final_square.rank][move.final_square.file].piece
-
-    def reset_board(self):
-        for rank in range(ranks):
-            for file in range(files):
-                self.squares[rank][file].piece = None
-        self.current_moves = []
-        self.last_move = None
-        self.last_minimax_move = False
-        self.move_played = False
-        self.win_message = False
-        self.game_ended = False
-        self.ai_game_ended = False
-        self.add_startposition('white')
-        self.add_startposition('black')
 
     def save_own_square_pieces(self, color):
         lst = []
@@ -455,7 +457,6 @@ class Board:
 
         if len(piece_list) != self.last_num_of_pieces:
             self.last_num_of_pieces = len(piece_list)
-            self.move_counter = 0
 
         if insufficient_material:
             self.evaluation = 0.0
