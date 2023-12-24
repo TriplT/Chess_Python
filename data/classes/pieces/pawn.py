@@ -9,8 +9,5 @@ class Pawn(Piece):
         else:
             self.direction = 1
 
-        # we also need king half pawns
         super().__init__('pawn', color, 744)
 
-    def get_move(self, board):
-        pass

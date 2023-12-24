@@ -159,11 +159,10 @@ class AI:
             print(f'min_player pruning count: {self.min_pruning_count}')
             print(' ')
             print(f'this is the final eval: {evaluation}')
-            print(f'this is the final move:')
-            print(board.squares[final_move.initial_square.rank][final_move.initial_square.file].piece.color,
-                  board.squares[final_move.initial_square.rank][final_move.initial_square.file].piece.name)
-            print(f'initial sq: ({final_move.initial_square.rank}, {final_move.initial_square.file}) final sq: '
-                  f'({final_move.final_square.rank}, {final_move.final_square.file})')
+            print(f'this is the final move: {board.squares[final_move.initial_square.rank][final_move.initial_square.file].piece.color} '
+                  f'{board.squares[final_move.initial_square.rank][final_move.initial_square.file].piece.name} '
+                  f'initial sq: ({final_move.initial_square.rank}, {final_move.initial_square.file}) '
+                  f'final sq: ({final_move.final_square.rank}, {final_move.final_square.file})')
 
             piece = board.squares[final_move.initial_square.rank][final_move.initial_square.file].piece
 
@@ -272,6 +271,14 @@ class AI:
             board.evaluate_position(self.color)
             print(f'evaluate position: {board.evaluation}')
 
+        '''
+        if board.squares[2][2].occupied():
+            if isinstance(board.squares[2][2].piece, Knight) or board.move_counter == 1 or isinstance(board.squares[2][2].piece, Pawn):
+                print(f'{board.squares[2][2].piece.color} {board.squares[2][2].piece.name} on square 2, 2')
+            else:
+                exit(1)
+        '''
+
         if board.ai_game_ended:
             board.ai_game_ended = False
             return board.evaluation, best_move
@@ -293,13 +300,8 @@ class AI:
         print(f'color: {player_color}')
 
         valid_moves = board.get_valid_moves(player_color, False, max_player)
-        '''
-        if board.squares[2][2].occupied():
-            if isinstance(board.squares[2][2].piece, Knight) or board.move_counter == 1:
-                print(f'{board.squares[2][2].piece.color} {board.squares[2][2].piece.name} on square 2, 2')
-            else:
-                exit(1)
 
+        '''
         if depth == 3:
             for move in valid_moves:
                 print(board.squares[move.initial_square.rank][move.initial_square.file].piece.color, board.squares[move.initial_square.rank][move.initial_square.file].piece.name)
@@ -321,7 +323,7 @@ class AI:
                 # this line is here for bug fixing. remove this and uncomment to one before
                 print(piece.color, piece.name)
 
-                board.minimax_move(piece, move, True)
+                board.minimax_move(piece, move)
                 evaluation = self.minimax_ascended(board, depth - 1, alpha, beta, False)
 
                 print('unmake move')
@@ -355,7 +357,7 @@ class AI:
                 print((move.initial_square.rank, move.initial_square.file),
                 (move.final_square.rank, move.final_square.file))
 
-                board.minimax_move(piece, move, True)
+                board.minimax_move(piece, move)
                 evaluation = self.minimax_ascended(board, depth - 1, alpha, beta, True)
 
                 print('unmake move')

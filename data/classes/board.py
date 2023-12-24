@@ -36,7 +36,6 @@ class Board:
         self.move_counter = 0
         self.minimax_move_counter = 0
 
-        self.last_piece = None
         self.last_move = None
         self.last_white_move = None
         self.last_black_move = None
@@ -115,14 +114,11 @@ class Board:
         self.move_played = True
         self.move_counter += 1
 
-        self.last_piece = piece
         self.last_move = move
 
-    def minimax_move(self, piece, move, set_history=False):
-        if set_history:
-            last_piece = self.squares[move.final_square.rank][move.final_square.file].piece
-            self.save_last_eaten_piece(last_piece)
-            self.minimax_move_counter += 1
+    def minimax_move(self, piece, move):
+        self.save_last_eaten_piece(self.squares[move.final_square.rank][move.final_square.file].piece)
+        self.minimax_move_counter += 1
 
         self.squares[move.initial_square.rank][move.initial_square.file].piece = None
         self.squares[move.final_square.rank][move.final_square.file].piece = piece
@@ -152,8 +148,8 @@ class Board:
                     self.minimax_move(rook, rook_move, False)
 
         if isinstance(piece, Pawn):
-            self.en_passant(piece, move, self.last_minimax_move)
             self.ai_pawn_promotion(piece, move)
+            self.en_passant(piece, move, self.last_minimax_move)
 
         if isinstance(piece, Rook):
             rank = 0 if piece.color == 'black' else 7
@@ -169,7 +165,6 @@ class Board:
         self.last_minimax_move = move
 
     def save_last_eaten_piece(self, piece):
-        # piece.moved ???
         self.last_eaten_piece.append(piece)
 
     def get_last_eaten_piece(self):
@@ -178,11 +173,16 @@ class Board:
     def unmake_move(self, piece, move, reduce_count=True):
         last_eaten_piece = self.get_last_eaten_piece()
 
+        '''
+        if self.last_eaten_piece:
+            for num, piece in enumerate(self.last_eaten_piece):
+                print(f'unmake piece {num}: {piece.color if piece else None} {piece.name if piece else None}')
+        '''
+        print(f'bring back to life: {last_eaten_piece.color if last_eaten_piece else None} {last_eaten_piece.name if last_eaten_piece else None} {move.initial_square.rank, move.initial_square.file} {move.final_square.rank, move.final_square.file}')
         self.squares[move.initial_square.rank][move.initial_square.file].piece = piece
+        self.squares[move.final_square.rank][move.final_square.file].piece = last_eaten_piece
         if last_eaten_piece:
-            self.squares[move.final_square.rank][move.final_square.file].piece = last_eaten_piece
-        else:
-            self.squares[move.final_square.rank][move.final_square.file].piece = None
+            print(f'unmake move piece recovered: {self.squares[move.final_square.rank][move.final_square.file].piece.color} {self.squares[move.final_square.rank][move.final_square.file].piece.name}')
 
         # revert castling
         if isinstance(piece, King):
@@ -468,15 +468,15 @@ class Board:
             self.evaluation = 0.0
             self.ai_game_ended = True
 
-    def get_valid_moves(self, color, player, max_player=True):
+    def get_valid_moves(self, color, eval_color=False, minimax=False):
 
         self.calculate_enemy_attacking_moves('white' if color == 'black' else 'black')
         if self.enemy_checking_squares:
             # because the king is in check there will only be moves calculated that put the king out of check
-            return self.in_check_valid_moves(color, player, max_player)
+            return self.in_check_valid_moves(color, eval_color, minimax)
         else:
             # because the king is NOT in check moves can be calculated easily
-            return self.no_check_valid_moves(color, player)
+            return self.no_check_valid_moves(color, eval_color, minimax)
 
     def calculate_enemy_attacking_moves(self, color):
 
@@ -677,8 +677,9 @@ class Board:
                             (0, -1),
                             (1, 0)])
 
-    def in_check_valid_moves(self, color, player, max_player=True):
-        # WAS HT DAS AUF SICH MIT DEM FINAL PIECE final(rank, file, FINAL PIECE) ?????
+    # parameter eval color used for game over (stale-/checkmate)
+    # parameter minimax used for en passant to define what was the last piece
+    def in_check_valid_moves(self, color, eval_color=False, minimax=False):
         def pawn_moves():
             promotion_pieces = [Queen, Knight, Bishop, Rook]
             if (color == 'white' and rank == 6) or (color == 'black' and rank == 1):
@@ -721,13 +722,9 @@ class Board:
                 if Square.in_range(possible_move_rank, possible_move_file):
                     if self.squares[possible_move_rank][possible_move_file].occupied_by_opponent(color):
                         for square in self.enemy_checking_squares:
-                            # brauch ich das??? ist final_piece nicht für unmake move, was ich schon habe?
-                            # final_piece = self.squares[possible_move_rank][possible_move_file].piece
-                            # final_pos = Square(possible_move_rank, possible_move_file, final_piece)
                             if possible_move_rank == square[0] and possible_move_file == square[1]:
                                 initial_pos = Square(rank, file)
-                                final_piece = self.squares[possible_move_rank][possible_move_file].piece
-                                final_pos = Square(possible_move_rank, possible_move_file, final_piece)
+                                final_pos = Square(possible_move_rank, possible_move_file)
                                 move = Move(initial_pos, final_pos)
                                 if not piece.pinned or (possible_move_rank, possible_move_file) in piece.pinned:
                                     if final_pos.rank == 0 or final_pos.rank == 7:
@@ -738,20 +735,21 @@ class Board:
                                         valid_moves.append(move)
 
             # please add special case en passant and check whether the pawn that's being killed is a pinned piece
-            if self.last_move:
-                last_initial = self.last_move.initial_square
-                last_final = self.last_move.final_square
+            last_move = self.last_move if not minimax else self.last_minimax_move
+            if last_move:
+                last_initial = last_move.initial_square
+                last_final = last_move.final_square
+                last_piece = self.squares[last_final.rank][last_final.file].piece
 
-                if isinstance(self.last_piece, Pawn):
-                    if abs(last_final.rank - last_initial.rank) > 1 and last_final.rank == rank:
+                if isinstance(last_piece, Pawn):
+                    if abs(last_final.rank - last_initial.rank) == 2 and last_final.rank == rank:
                         for possible_move_file in possible_move_files:
                             if Square.in_range(possible_move_rank, possible_move_file):
-                                if self.squares[rank][possible_move_file].piece == self.last_piece:
+                                if self.squares[rank][possible_move_file].piece == last_piece:
                                     for square in self.enemy_checking_squares:
                                         if possible_move_rank == square[0] and possible_move_file == square[1]:
                                             initial_pos = Square(rank, file)
-                                            final_piece = self.squares[possible_move_rank][possible_move_file].piece
-                                            final_pos = Square(possible_move_rank, possible_move_file, final_piece)
+                                            final_pos = Square(possible_move_rank, possible_move_file)
                                             move = Move(initial_pos, final_pos)
                                             if piece.pinned or (possible_move_rank, possible_move_file) in piece.pinned:
                                                 valid_moves.append(move)
@@ -776,8 +774,7 @@ class Board:
                         if self.squares[move_rank][move_file].no_friendly_fire(color):
                             for square in self.enemy_checking_squares:
                                 if move_rank == square[0] and move_file == square[1]:
-                                    final_piece = self.squares[move_rank][move_file].piece
-                                    move = Move(Square(rank, file), Square(move_rank, move_file, final_piece))
+                                    move = Move(Square(rank, file), Square(move_rank, move_file))
                                     valid_moves.append(move)
 
         def strait_line_moves(increments):
@@ -793,8 +790,7 @@ class Board:
                             for square in self.enemy_checking_squares:
                                 if possible_move_rank == square[0] and possible_move_file == square[1]:
                                     initial = Square(rank, file)
-                                    final_piece = self.squares[possible_move_rank][possible_move_file].piece
-                                    final = Square(possible_move_rank, possible_move_file, final_piece)
+                                    final = Square(possible_move_rank, possible_move_file)
                                     move = Move(initial, final)
                                     if not piece.pinned or (possible_move_rank, possible_move_file) in piece.pinned:
                                         valid_moves.append(move)
@@ -803,8 +799,7 @@ class Board:
                             for square in self.enemy_checking_squares:
                                 if possible_move_rank == square[0] and possible_move_file == square[1]:
                                     initial = Square(rank, file)
-                                    final_piece = self.squares[possible_move_rank][possible_move_file].piece
-                                    final = Square(possible_move_rank, possible_move_file, final_piece)
+                                    final = Square(possible_move_rank, possible_move_file)
                                     move = Move(initial, final)
                                     if not piece.pinned or (possible_move_rank, possible_move_file) in piece.pinned:
                                         valid_moves.append(move)
@@ -851,11 +846,15 @@ class Board:
             # calculate checkmate
             king_moves()
             if not valid_moves:
-                self.ai_game_ended = True
-                if max_player:
-                    self.evaluation = - 10000.0 + self.move_counter
+                if not eval_color:
+                    self.win_message = 'checkmate'
+                    self.game_ended = True
                 else:
-                    self.evaluation = 10000.0 - self.move_counter
+                    self.ai_game_ended = True
+                    if eval_color == 'white':
+                        self.evaluation = - 99999.0 + self.move_counter
+                    elif eval_color == 'black':
+                        self.evaluation = 99999.0 - self.move_counter
             return valid_moves
 
         for rank in range(ranks):
@@ -896,18 +895,18 @@ class Board:
 
         # calculate checkmate
         if not valid_moves:
-            if player:
+            if not eval_color:
                 self.win_message = 'checkmate'
                 self.game_ended = True
             else:
                 self.ai_game_ended = True
-                if max_player:
-                    self.evaluation = - 10000.0 + self.move_counter
-                else:
-                    self.evaluation = 10000.0 - self.move_counter
+                if eval_color == 'white':
+                    self.evaluation = - 99999.0 + self.move_counter
+                elif eval_color == 'black':
+                    self.evaluation = 99999.0 - self.move_counter
         return valid_moves
 
-    def no_check_valid_moves(self, color, player):
+    def no_check_valid_moves(self, color, eval_color=False, minimax=False):
         valid_moves = []
 
         def pawn_moves():
@@ -950,8 +949,7 @@ class Board:
                 if Square.in_range(possible_move_rank, possible_move_file):
                     if self.squares[possible_move_rank][possible_move_file].occupied_by_opponent(piece.color):
                         initial_pos = Square(rank, file)
-                        final_piece = self.squares[possible_move_rank][possible_move_file].piece
-                        final_pos = Square(possible_move_rank, possible_move_file, final_piece)
+                        final_pos = Square(possible_move_rank, possible_move_file)
                         move = Move(initial_pos, final_pos)
                         if not piece.pinned or (possible_move_rank, possible_move_file) in piece.pinned:
                             if final_pos.rank == 0 or final_pos.rank == 7:
@@ -960,19 +958,19 @@ class Board:
                                     valid_moves.append(move)
                             else:
                                 valid_moves.append(move)
+            last_move = self.last_move if not minimax else self.last_minimax_move
+            if last_move:
+                last_initial = last_move.initial_square
+                last_final = last_move.final_square
+                last_piece = self.squares[last_final.rank][last_final.file].piece
 
-            if self.last_move:
-                last_initial = self.last_move.initial_square
-                last_final = self.last_move.final_square
-
-                if isinstance(self.last_piece, Pawn):
-                    if abs(last_final.rank - last_initial.rank) > 1 and last_final.rank == rank:
+                if isinstance(last_piece, Pawn):
+                    if abs(last_final.rank - last_initial.rank) == 2 and last_final.rank == rank:
                         for possible_move_file in possible_move_files:
                             if Square.in_range(possible_move_rank, possible_move_file):
-                                if self.squares[rank][possible_move_file].piece == self.last_piece:
+                                if self.squares[rank][possible_move_file].piece == last_piece:
                                     initial_pos = Square(rank, file)
-                                    final_piece = self.squares[possible_move_rank][possible_move_file].piece
-                                    final_pos = Square(possible_move_rank, possible_move_file, final_piece)
+                                    final_pos = Square(possible_move_rank, possible_move_file)
                                     move = Move(initial_pos, final_pos)
                                     if not piece.pinned or (possible_move_rank, possible_move_file) in piece.pinned:
                                         valid_moves.append(move)
@@ -996,8 +994,7 @@ class Board:
 
                     if Square.in_range(move_rank, move_file):
                         if self.squares[move_rank][move_file].no_friendly_fire(piece.color):
-                            final_piece = self.squares[move_rank][move_file].piece
-                            move = Move(Square(rank, file), Square(move_rank, move_file, final_piece))
+                            move = Move(Square(rank, file), Square(move_rank, move_file))
                             valid_moves.append(move)
 
         def strait_line_moves(increments):
@@ -1010,8 +1007,7 @@ class Board:
                     if Square.in_range(possible_move_rank, possible_move_file):
 
                         initial = Square(rank, file)
-                        final_piece = self.squares[possible_move_rank][possible_move_file].piece
-                        final = Square(possible_move_rank, possible_move_file, final_piece)
+                        final = Square(possible_move_rank, possible_move_file)
                         move = Move(initial, final)
 
                         if self.squares[possible_move_rank][possible_move_file].occupied_by_noone():
@@ -1119,7 +1115,7 @@ class Board:
 
         # calculate stalemate
         if not valid_moves:
-            if player:
+            if not eval_color:
                 self.win_message = 'stalemate'
                 self.game_ended = True
             else:
