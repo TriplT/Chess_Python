@@ -25,7 +25,7 @@ class Game:
             self.player = 'white'
 
     def calc_player_valid_moves(self):
-        self.player_valid_moves = self.board.get_valid_moves(self.player, True)
+        self.player_valid_moves = self.board.get_valid_moves(self.player)
 
     def ai_turn(self, board, ai):
         if self.player == ai.color and not board.game_ended and not board.move_played:

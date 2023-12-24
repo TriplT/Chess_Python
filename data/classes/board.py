@@ -34,15 +34,11 @@ class Board:
 
         self.move_played = False
         self.move_counter = 0
-        self.minimax_move_counter = 0
+        self.played_moves = 0  # needed for bug fixing
 
-        self.last_move = None
-        self.last_white_move = None
-        self.last_black_move = None
-        self.last_minimax_move = None
-        self.current_moves = []
+        self.last_moves = []
 
-        self.last_num_of_pieces = 0  # 50 move-rule, ineffizient?
+        self.last_num_of_pieces = 0  # 50 move-rule, ineffizient? einfach in normale move funktion einbauen
         self.repetition_counter = 0
         self.game_ended = False
         self.win_message = False
@@ -61,11 +57,8 @@ class Board:
         for rank in range(ranks):
             for file in range(files):
                 self.squares[rank][file].piece = None
-        self.current_moves = []
-        self.last_move = None
-        self.last_minimax_move = False
+        self.last_moves = []
         self.move_counter = 0
-        self.minimax_move_counter = 0
         self.move_played = False
         self.win_message = False
         self.game_ended = False
@@ -99,7 +92,8 @@ class Board:
                     self.move(rook, rook_move, True, game) if player else self.move(rook, rook_move, False, game)
 
         if isinstance(piece, Pawn):
-            self.en_passant(piece, move, self.last_move, player)
+            last_move = self.get_last_move() if self.move_counter != 0 else False
+            self.en_passant(piece, move, last_move)
             self.player_pawn_promotion(screen, piece, move.final_square, game) if player else self.ai_pawn_promotion(piece, move)
 
         if isinstance(piece, Rook):
@@ -113,12 +107,14 @@ class Board:
 
         self.move_played = True
         self.move_counter += 1
-
-        self.last_move = move
+        self.played_moves += 1
+        # self.save_last_move(move)
+        # doesnt work unfortunately
+        # thus:
+        self.last_moves = [move]
 
     def minimax_move(self, piece, move):
         self.save_last_eaten_piece(self.squares[move.final_square.rank][move.final_square.file].piece)
-        self.minimax_move_counter += 1
 
         self.squares[move.initial_square.rank][move.initial_square.file].piece = None
         self.squares[move.final_square.rank][move.final_square.file].piece = piece
@@ -127,69 +123,66 @@ class Board:
             file_diff = abs(move.final_square.file - move.initial_square.file)
             if not piece.lost_left_castling and piece.left_castling:
                 piece.left_castling = False
-                piece.lost_left_castling = self.minimax_move_counter
+                piece.lost_left_castling = self.move_counter
             elif not piece.lost_right_castling and piece.right_castling:
                 piece.right_castling = False
-                piece.lost_right_castling = self.minimax_move_counter
+                piece.lost_right_castling = self.move_counter
 
             if file_diff == 2:
                 if move.final_square.file == 2:
                     rank = 0 if piece.color == 'black' else 7
                     file = 0
                     rook = self.squares[rank][file].piece
-                    rook_move = Move(Square(rank, file), Square(rank, 3))
-                    self.minimax_move(rook, rook_move, False)
+                    # move rook
+                    self.squares[rank][file].piece = None
+                    self.squares[rank][3].piece = rook
 
                 if move.final_square.file == 6:
                     rank = 0 if piece.color == 'black' else 7
                     file = 7
                     rook = self.squares[rank][file].piece
-                    rook_move = Move(Square(rank, file), Square(rank, 5))
-                    self.minimax_move(rook, rook_move, False)
+                    # move rook
+                    self.squares[rank][file].piece = None
+                    self.squares[rank][5].piece = rook
 
         if isinstance(piece, Pawn):
             self.ai_pawn_promotion(piece, move)
-            self.en_passant(piece, move, self.last_minimax_move)
+            last_move = self.get_last_move()
+            self.en_passant(piece, move, last_move)
 
         if isinstance(piece, Rook):
             rank = 0 if piece.color == 'black' else 7
             possible_king = self.squares[rank][4].piece
             if isinstance(possible_king, King):
                 if not possible_king.left_castling and not possible_king.lost_left_castling and move.initial_square.file == 0:
-                    possible_king.lost_left_castling = self.minimax_move_counter
+                    possible_king.lost_left_castling = self.move_counter
                     possible_king.left_castling = False
                 elif not possible_king.right_castling and not possible_king.lost_right_castling and move.initial_square.file == 7:
-                    possible_king.lost_right_castling = self.minimax_move_counter
+                    possible_king.lost_right_castling = self.move_counter
                     possible_king.right_castling = False
 
-        self.last_minimax_move = move
+        self.move_counter += 1
+        self.save_last_move(move)
 
-    def save_last_eaten_piece(self, piece):
-        self.last_eaten_piece.append(piece)
-
-    def get_last_eaten_piece(self):
-        return self.last_eaten_piece.pop()
-
-    def unmake_move(self, piece, move, reduce_count=True):
+    def unmake_move(self, piece, move):
         last_eaten_piece = self.get_last_eaten_piece()
+        self.pop_last_move()
+        self.move_counter -= 1
 
-        '''
-        if self.last_eaten_piece:
-            for num, piece in enumerate(self.last_eaten_piece):
-                print(f'unmake piece {num}: {piece.color if piece else None} {piece.name if piece else None}')
-        '''
-        print(f'bring back to life: {last_eaten_piece.color if last_eaten_piece else None} {last_eaten_piece.name if last_eaten_piece else None} {move.initial_square.rank, move.initial_square.file} {move.final_square.rank, move.final_square.file}')
         self.squares[move.initial_square.rank][move.initial_square.file].piece = piece
         self.squares[move.final_square.rank][move.final_square.file].piece = last_eaten_piece
-        if last_eaten_piece:
-            print(f'unmake move piece recovered: {self.squares[move.final_square.rank][move.final_square.file].piece.color} {self.squares[move.final_square.rank][move.final_square.file].piece.name}')
+
+        # revert eaten piece in en passant
+        if isinstance(piece, Pawn):
+            if piece.made_en_passant == self.move_counter:
+                self.squares[move.initial_square.rank][move.final_square.file].piece = Pawn('white' if piece.color == 'black' else 'black')
 
         # revert castling
         if isinstance(piece, King):
-            if piece.lost_left_castling == self.minimax_move_counter:
+            if piece.lost_left_castling == self.move_counter:
                 piece.left_castling = True
                 piece.lost_left_castling = False
-            elif piece.lost_right_castling == self.minimax_move_counter:
+            elif piece.lost_right_castling == self.move_counter:
                 piece.right_castling = True
                 piece.lost_right_castling = False
 
@@ -199,24 +192,20 @@ class Board:
                 final_file = 3 if move.final_square.file == 2 else 5
 
                 rook = self.squares[rank][final_file].piece
-                rook_move = Move(Square(rank, initial_file), Square(rank, final_file))
-
-                self.save_last_eaten_piece(None)
-                self.unmake_move(rook, rook_move, False)
+                # unmake rook
+                self.squares[rank][initial_file].piece = rook
+                self.squares[rank][final_file].piece = None
 
         if isinstance(piece, Rook):
             rank = 0 if piece.color == 'black' else 7
             possible_king = self.squares[rank][4].piece
             if isinstance(possible_king, King):
-                if possible_king.lost_left_castling == self.minimax_move_counter:
+                if possible_king.lost_left_castling == self.move_counter:
                     possible_king.left_castling = True
                     possible_king.lost_left_castling = False
-                elif possible_king.lost_right_castling == self.minimax_move_counter:
+                elif possible_king.lost_right_castling == self.move_counter:
                     possible_king.right_castling = True
                     possible_king.lost_right_castling = False
-
-        if reduce_count:
-            self.minimax_move_counter -= 1
 
     def ai_pawn_promotion(self, piece, move):
         if isinstance(piece, Pawn) and (move.final_square.rank == 0 or move.final_square.rank == 7):
@@ -269,11 +258,12 @@ class Board:
                             self.squares[last.rank][last.file].piece = Knight(piece.color)
                             return
 
-    def en_passant(self, piece, move, last_move, player=False):
-        if piece.en_passant and move.final_square.file == last_move.final_square.file:
-            self.squares[last_move.final_square.rank][last_move.final_square.file].piece = None
-            if not player:
-                piece.en_passant = False
+    def en_passant(self, piece, move, last_move, minimax=False):
+        if piece.en_passant:
+            if move.final_square.file == last_move.final_square.file:
+                self.squares[last_move.final_square.rank][last_move.final_square.file].piece = None
+                if minimax:
+                    piece.made_en_passant = self.move_counter
 
     def game_end(self, color):
         piece_list = []
@@ -359,6 +349,21 @@ class Board:
                 if self.squares[rank][file].piece:
                     counter += 1
         self.last_num_of_pieces = counter
+
+    def save_last_move(self, move):
+        self.last_moves.append(move)
+
+    def get_last_move(self):
+        return self.last_moves[-1]
+
+    def pop_last_move(self):
+        self.last_moves.pop()
+
+    def save_last_eaten_piece(self, piece):
+        self.last_eaten_piece.append(piece)
+
+    def get_last_eaten_piece(self):
+        return self.last_eaten_piece.pop()
 
     def evaluate_position(self, color):
         pieces = self.save_all_pieces()
@@ -468,15 +473,15 @@ class Board:
             self.evaluation = 0.0
             self.ai_game_ended = True
 
-    def get_valid_moves(self, color, eval_color=False, minimax=False):
+    def get_valid_moves(self, color, eval_color=False):
 
         self.calculate_enemy_attacking_moves('white' if color == 'black' else 'black')
         if self.enemy_checking_squares:
             # because the king is in check there will only be moves calculated that put the king out of check
-            return self.in_check_valid_moves(color, eval_color, minimax)
+            return self.in_check_valid_moves(color, eval_color)
         else:
             # because the king is NOT in check moves can be calculated easily
-            return self.no_check_valid_moves(color, eval_color, minimax)
+            return self.no_check_valid_moves(color, eval_color)
 
     def calculate_enemy_attacking_moves(self, color):
 
@@ -678,10 +683,10 @@ class Board:
                             (1, 0)])
 
     # parameter eval color used for game over (stale-/checkmate)
-    # parameter minimax used for en passant to define what was the last piece
-    def in_check_valid_moves(self, color, eval_color=False, minimax=False):
+    def in_check_valid_moves(self, color, eval_color=False):
         def pawn_moves():
             promotion_pieces = [Queen, Knight, Bishop, Rook]
+            piece.en_passant = False
             if (color == 'white' and rank == 6) or (color == 'black' and rank == 1):
                 steps = 2
             else:
@@ -735,7 +740,7 @@ class Board:
                                         valid_moves.append(move)
 
             # please add special case en passant and check whether the pawn that's being killed is a pinned piece
-            last_move = self.last_move if not minimax else self.last_minimax_move
+            last_move = self.get_last_move() if self.move_counter != 0 else None
             if last_move:
                 last_initial = last_move.initial_square
                 last_final = last_move.final_square
@@ -906,11 +911,12 @@ class Board:
                     self.evaluation = 99999.0 - self.move_counter
         return valid_moves
 
-    def no_check_valid_moves(self, color, eval_color=False, minimax=False):
+    def no_check_valid_moves(self, color, eval_color=False):
         valid_moves = []
 
         def pawn_moves():
             promotion_pieces = [Queen, Knight, Bishop, Rook]
+            piece.en_passant = False
             if (color == 'white' and rank == 6) or (color == 'black' and rank == 1):
                 steps = 2
             else:
@@ -958,7 +964,8 @@ class Board:
                                     valid_moves.append(move)
                             else:
                                 valid_moves.append(move)
-            last_move = self.last_move if not minimax else self.last_minimax_move
+
+            last_move = self.get_last_move() if self.move_counter != 0 else None
             if last_move:
                 last_initial = last_move.initial_square
                 last_final = last_move.final_square
@@ -975,6 +982,7 @@ class Board:
                                     if not piece.pinned or (possible_move_rank, possible_move_file) in piece.pinned:
                                         valid_moves.append(move)
                                         piece.en_passant = True
+                                        print(f'no check v.m. : {piece.color} {piece.name} {rank, file} {possible_move_rank} {possible_move_file}')
 
         def knight_moves():
             if not piece.pinned:

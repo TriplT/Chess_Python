@@ -37,7 +37,7 @@ class AI:
 
         # engines
         def play_random():
-            moves = board.get_valid_moves(self.color, True)
+            moves = board.get_valid_moves(self.color, self.color)
             move = random.choice(moves)
 
             board.move(board.squares[move.initial_square.rank][move.initial_square.file].piece, move, False)
@@ -46,7 +46,7 @@ class AI:
         def random_test_improved():
             # random_move = random.choice(board.get_valid_moves(self.color))
             move_list = []
-            for random_move in board.get_valid_moves(self.color, True):
+            for random_move in board.get_valid_moves(self.color, self.color):
                 move_list.append(random_move)
 
             random_move = random.choice(move_list)
@@ -181,11 +181,11 @@ class AI:
             return True
 
         def move_amount():
-            for move in board.get_valid_moves(self.color, True):
+            for move in board.get_valid_moves(self.color, self.color):
                 print(f'{board.squares[move.initial_square.rank][move.initial_square.file].piece.name} '
                       f'from ({move.initial_square.rank}, {move.initial_square.file}) '
                       f'to ({move.final_square.rank}, {move.final_square.file})')
-            print(f'valid_moves: {len(board.get_valid_moves(self.color, True))}')
+            print(f'valid_moves: {len(board.get_valid_moves(self.color, self.color))}')
             while True:
                 x = 349737
 
@@ -203,7 +203,7 @@ class AI:
                     else:
                         player_color = 'white'
 
-                valid_moves = board.get_valid_moves(player_color, True)
+                valid_moves = board.get_valid_moves(player_color, player_color)
 
                 for move in valid_moves:
                     piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
@@ -271,9 +271,10 @@ class AI:
             board.evaluate_position(self.color)
             print(f'evaluate position: {board.evaluation}')
 
+        # make ready for next bug
         '''
         if board.squares[2][2].occupied():
-            if isinstance(board.squares[2][2].piece, Knight) or board.move_counter == 1 or isinstance(board.squares[2][2].piece, Pawn):
+            if isinstance(board.squares[2][2].piece, Knight) or board.played moves < 3 or isinstance(board.squares[2][2].piece, Pawn):
                 print(f'{board.squares[2][2].piece.color} {board.squares[2][2].piece.name} on square 2, 2')
             else:
                 exit(1)
@@ -299,7 +300,7 @@ class AI:
         print(f'minimax: {self.minimax_count}')
         print(f'color: {player_color}')
 
-        valid_moves = board.get_valid_moves(player_color, False, max_player)
+        valid_moves = board.get_valid_moves(player_color, self.color)
 
         '''
         if depth == 3:
