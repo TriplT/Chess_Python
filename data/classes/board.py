@@ -146,9 +146,9 @@ class Board:
                     self.squares[rank][5].piece = rook
 
         if isinstance(piece, Pawn):
-            self.ai_pawn_promotion(piece, move)
-            last_move = self.get_last_move()
+            last_move = self.get_last_move() if self.move_counter != 0 else False
             self.en_passant(piece, move, last_move)
+            self.ai_pawn_promotion(piece, move)
 
         if isinstance(piece, Rook):
             rank = 0 if piece.color == 'black' else 7
@@ -599,8 +599,12 @@ class Board:
                             # diagonal/vertical vision
                             if not end_reached:
                                 self.enemy_attacking_squares[possible_move_rank][possible_move_file] = 1
+                                end_reached = True
 
-                            end_reached = True
+                            if not king_reached:
+                                pinned_piece = self.squares[possible_move_rank][possible_move_file].piece
+                                pinning_pieces += 1
+
                             if isinstance(self.squares[possible_move_rank][possible_move_file].piece, Pawn):
                                 pass
                             # mach es mit pinned pieces (dem count)
