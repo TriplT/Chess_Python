@@ -34,6 +34,7 @@ class Board:
 
         self.move_played = False
         self.move_counter = 0
+        self.fifty_move_counter = 0  # 50 move rule variable
         self.played_moves = 0  # needed for bug fixing
 
         self.last_moves = []
@@ -434,10 +435,12 @@ class Board:
 
         for rank in range(ranks):
             for file in range(files):
-
-                p = self.squares[rank][file].piece
-                if self.squares[rank][file].occupied():
-                    piece_list.append(p)
+                if len(piece_list) > 4:
+                    break
+                else:
+                    p = self.squares[rank][file].piece
+                    if self.squares[rank][file].occupied():
+                        piece_list.append(p)
 
         knight_counter = 0
         bishop_counter = 0
@@ -469,7 +472,7 @@ class Board:
         elif self.repetition_counter >= 4:
             self.evaluation = 0.0
             self.ai_game_ended = True
-        elif self.move_counter == 50:
+        elif self.fifty_move_counter == 50:
             self.evaluation = 0.0
             self.ai_game_ended = True
 

@@ -271,7 +271,7 @@ class AI:
             board.evaluate_position(self.color)
             print(f'evaluate position: {board.evaluation}')
 
-        # make ready for next bug
+        # ready up for next bug
         '''
         if board.squares[2][2].occupied():
             if isinstance(board.squares[2][2].piece, Knight) or board.played moves < 3 or isinstance(board.squares[2][2].piece, Pawn):
@@ -291,8 +291,6 @@ class AI:
             else:
                 player_color = 'white'
 
-        self.minimax_count += 1
-
         board.game_end_minimax(player_color)
         if board.ai_game_ended:
             board.ai_game_ended = False
@@ -302,6 +300,8 @@ class AI:
         if board.ai_game_ended:
             board.ai_game_ended = False
             return board.evaluation, best_move
+
+        self.minimax_count += 1
 
         print(f'minimax: {self.minimax_count}')
         print(f'color: {player_color}')
