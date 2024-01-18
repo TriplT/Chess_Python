@@ -279,13 +279,132 @@ class AI:
             else:
                 exit(1)
         '''
+        if depth == 0:
+            board.evaluate_position(self.color)
+            return board.evaluation, best_move
 
+        if max_player:
+            player_color = self.color
+        else:
+            if self.color == 'white':
+                player_color = 'black'
+            else:
+                player_color = 'white'
+
+        self.minimax_count += 1
+
+        board.game_end_minimax(player_color)
         if board.ai_game_ended:
             board.ai_game_ended = False
             return board.evaluation, best_move
-        elif depth == 0:
+
+        valid_moves = board.get_valid_moves(player_color, self.color)
+        if board.ai_game_ended:
+            board.ai_game_ended = False
+            return board.evaluation, best_move
+
+        print(f'minimax: {self.minimax_count}')
+        print(f'color: {player_color}')
+
+        '''
+        if depth == 3:
+            for move in valid_moves:
+                print(board.squares[move.initial_square.rank][move.initial_square.file].piece.color, board.squares[move.initial_square.rank][move.initial_square.file].piece.name)
+                print(f'{move.initial_square.rank, move.initial_square.file} to {move.final_square.rank, move.final_square.file}')
+        '''
+
+        if max_player:
+            max_eval = -math.inf
+            max_move = -math.inf
+
+            for move in valid_moves:
+                piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
+
+                print('move')
+                # print(piece.color, piece.name)
+                print((move.initial_square.rank, move.initial_square.file),
+                (move.final_square.rank, move.final_square.file))
+                # this line is here for bug fixing. remove this and uncomment to one before
+                print(piece.color, piece.name)
+
+                board.minimax_move(piece, move)
+                evaluation = self.minimax_ascended(board, depth - 1, alpha, beta, False)
+
+                print('unmake move')
+                print(piece.color, piece.name)
+                print((move.initial_square.rank, move.initial_square.file),
+                (move.final_square.rank, move.final_square.file))
+
+                board.unmake_move(piece, move)
+
+                max_eval = max(max_eval, evaluation[0])
+                if max_eval > max_move:
+                    max_move = max_eval
+                    best_max_move = move
+
+                alpha = max(alpha, max_eval)
+                if beta <= alpha:
+                    self.alpha_beta_pruning_count += 1
+                    self.max_pruning_count += 1
+                    break
+            return max_eval, best_max_move
+
+        else:
+            min_eval = math.inf
+            min_move = math.inf
+
+            for move in valid_moves:
+                piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
+
+                print('move')
+                print(piece.color, piece.name)
+                print((move.initial_square.rank, move.initial_square.file),
+                (move.final_square.rank, move.final_square.file))
+
+                board.minimax_move(piece, move)
+                evaluation = self.minimax_ascended(board, depth - 1, alpha, beta, True)
+
+                print('unmake move')
+                print(piece.color, piece.name)
+                print((move.initial_square.rank, move.initial_square.file),
+                (move.final_square.rank, move.final_square.file))
+
+                board.unmake_move(piece, move)
+
+                min_eval = min(min_eval, evaluation[0])
+                if min_eval < min_move:
+                    min_move = min_eval
+                    best_min_move = move
+
+                beta = min(beta, min_eval)
+                if beta <= alpha:
+                    self.alpha_beta_pruning_count += 1
+                    self.min_pruning_count += 1
+                    break
+            return min_eval, best_min_move
+    def minimax_improved_3(self, board, depth, alpha, beta, max_player, best_move='000000000 error 00000000'):
+
+        print(' ')
+        print(f'depth: {depth}')
+        if depth == 0:
+            board.evaluate_position(self.color)
+            print(f'evaluate position: {board.evaluation}')
+
+        # make ready for next bug
+        '''
+        if board.squares[2][2].occupied():
+            if isinstance(board.squares[2][2].piece, Knight) or board.played moves < 3 or isinstance(board.squares[2][2].piece, Pawn):
+                print(f'{board.squares[2][2].piece.color} {board.squares[2][2].piece.name} on square 2, 2')
+            else:
+                exit(1)
+        '''
+        if depth == 0:
             board.evaluate_position(self.color)
             return board.evaluation, best_move
+        elif board.ai_game_ended:
+            board.ai_game_ended = False
+            return board.evaluation, best_move
+
 
         if max_player:
             player_color = self.color
