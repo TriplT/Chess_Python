@@ -1,0 +1,56 @@
+         4414097 function calls (4397212 primitive calls) in 2.890 seconds
+
+   Ordered by: cumulative time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+  16886/1    0.160    0.000    2.890    2.890 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\AI.py:276(minimax_ascended)
+     1537    0.003    0.000    1.210    0.001 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:473(get_valid_moves)
+    15349    0.067    0.000    0.741    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:369(evaluate_position)
+    15349    0.477    0.000    0.661    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:338(get_pieces)
+     1537    0.133    0.000    0.655    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:483(calculate_enemy_attacking_moves)
+   153538    0.596    0.000    0.596    0.000 {built-in method builtins.print}
+     1530    0.066    0.000    0.551    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:915(no_check_valid_moves)
+     7685    0.182    0.000    0.346    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:523(strait_line_moves)
+  1662140    0.246    0.000    0.246    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\square.py:16(occupied)
+     7650    0.087    0.000    0.173    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:1009(strait_line_moves)
+    12235    0.098    0.000    0.167    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:918(pawn_moves)
+   258694    0.093    0.000    0.134    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\square.py:22(occupied_by_teammate)
+   328346    0.118    0.000    0.118    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\square.py:31(in_range)
+   179087    0.061    0.000    0.090    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\square.py:19(occupied_by_noone)
+    16885    0.050    0.000    0.083    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:122(minimax_move)
+   127830    0.051    0.000    0.072    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\square.py:25(occupied_by_opponent)
+   626270    0.061    0.000    0.061    0.000 {method 'append' of 'list' objects}
+    16885    0.036    0.000    0.060    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:173(unmake_move)
+     3060    0.026    0.000    0.053    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:988(knight_moves)
+   397579    0.045    0.000    0.045    0.000 {built-in method builtins.isinstance}
+   123818    0.044    0.000    0.044    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\square.py:7(__init__)
+    12296    0.022    0.000    0.042    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:485(pawn_moves)
+     3074    0.018    0.000    0.039    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:499(knight_moves)
+     1530    0.017    0.000    0.035    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:1037(king_moves)
+    28762    0.013    0.000    0.035    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\square.py:28(no_friendly_fire)
+     1537    0.016    0.000    0.020    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:432(game_end_minimax)
+    61909    0.017    0.000    0.017    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\move.py:3(__init__)
+    15349    0.013    0.000    0.013    0.000 {built-in method builtins.round}
+   104386    0.012    0.000    0.012    0.000 {built-in method time.time}
+     1537    0.007    0.000    0.011    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:618(king_moves)
+    16885    0.007    0.000    0.009    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:366(get_last_eaten_piece)
+    16885    0.007    0.000    0.009    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:363(save_last_eaten_piece)
+    16885    0.007    0.000    0.008    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:360(pop_last_move)
+    16885    0.006    0.000    0.008    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:354(save_last_move)
+    31128    0.007    0.000    0.007    0.000 {built-in method builtins.min}
+     9083    0.005    0.000    0.006    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:216(ai_pawn_promotion)
+    21374    0.005    0.000    0.005    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:357(get_last_move)
+    33770    0.004    0.000    0.004    0.000 {method 'pop' of 'list' objects}
+    25092    0.002    0.000    0.002    0.000 {built-in method builtins.len}
+        7    0.000    0.000    0.002    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:687(in_check_valid_moves)
+     9083    0.002    0.000    0.002    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:267(en_passant)
+     1537    0.002    0.000    0.002    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:635(<listcomp>)
+     8458    0.001    0.000    0.001    0.000 {built-in method builtins.abs}
+     2642    0.001    0.000    0.001    0.000 {built-in method builtins.max}
+       35    0.000    0.000    0.001    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:786(strait_line_moves)
+       56    0.000    0.000    0.001    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:688(pawn_moves)
+       14    0.000    0.000    0.000    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:764(knight_moves)
+        7    0.000    0.000    0.000    0.000 C:\PyCharm\Pycharm_Projects\Chess_Test\data\classes\board.py:822(king_moves)
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+
+
