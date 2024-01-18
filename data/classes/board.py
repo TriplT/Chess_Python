@@ -47,7 +47,7 @@ class Board:
         self.create_squares()
         self.add_startposition('white')
         self.add_startposition('black')
-        self.save_number_of_pieces()
+        self.get_amount_of_pieces()
 
     def create_squares(self):
         for rank in range(ranks):
@@ -60,6 +60,7 @@ class Board:
                 self.squares[rank][file].piece = None
         self.last_moves = []
         self.move_counter = 0
+        self.fifty_move_counter = 0
         self.move_played = False
         self.win_message = False
         self.game_ended = False
@@ -68,6 +69,9 @@ class Board:
         self.add_startposition('black')
 
     def move(self, piece, move, player, game=None):
+        # 50 move rule
+        if self.squares[move.final_square.rank][move.final_square.file].occupied():
+            self.fifty_move_counter = - 1  # is turned to 0 at the bottom
 
         self.squares[move.initial_square.rank][move.initial_square.file].piece = None
         self.squares[move.final_square.rank][move.final_square.file].piece = piece
@@ -96,6 +100,7 @@ class Board:
             last_move = self.get_last_move() if self.move_counter != 0 else False
             self.en_passant(piece, move, last_move)
             self.player_pawn_promotion(screen, piece, move.final_square, game) if player else self.ai_pawn_promotion(piece, move)
+            self.fifty_move_counter = -1
 
         if isinstance(piece, Rook):
             rank = 0 if piece.color == 'black' else 7
@@ -108,9 +113,10 @@ class Board:
 
         self.move_played = True
         self.move_counter += 1
+        self.fifty_move_counter += 1
         self.played_moves += 1
         # self.save_last_move(move)
-        # doesnt work unfortunately
+        # doesn't work unfortunately
         # thus:
         self.last_moves = [move]
 
@@ -301,18 +307,13 @@ class Board:
             if knight_counter == 2 or (bishop_counter == 1 and knight_counter == 1):
                 insufficient_material = True
 
-        # 50 move-rule
-        if len(piece_list) != self.last_num_of_pieces:
-            self.last_num_of_pieces = len(piece_list)
-
-
         if insufficient_material:
             self.game_ended = True
             self.win_message = 'insufficient material'
         elif self.repetition_counter == 4:
             self.game_ended = True
             self.win_message = 'repetition'
-        elif self.move_counter == 50:
+        elif self.fifty_move_counter == 50:
             self.game_ended = True
             self.win_message = '50 move-rule'
 
@@ -327,7 +328,7 @@ class Board:
     def getPieceMoveFinal(self, move):
         return self.squares[move.final_square.rank][move.final_square.file].piece
 
-    def save_own_square_pieces(self, color):
+    def get_own_pieces(self, color):
         lst = []
         for rank in range(ranks):
             for file in range(files):
@@ -335,7 +336,7 @@ class Board:
                     lst.append(self.squares[rank][file])
         return lst
 
-    def save_all_pieces(self):
+    def get_pieces(self):
         lst = []
         for rank in range(ranks):
             for file in range(files):
@@ -343,7 +344,7 @@ class Board:
                     lst.append(self.squares[rank][file].piece)
         return lst
 
-    def save_number_of_pieces(self):
+    def get_amount_of_pieces(self):
         counter = 0
         for rank in range(ranks):
             for file in range(files):
@@ -367,7 +368,7 @@ class Board:
         return self.last_eaten_piece.pop()
 
     def evaluate_position(self, color):
-        pieces = self.save_all_pieces()
+        pieces = self.get_pieces()
         position_value = 0
         for piece in pieces:
             position_value += piece.value
@@ -463,16 +464,10 @@ class Board:
             if knight_counter == 2 or (bishop_counter == 1 and knight_counter == 1):
                 insufficient_material = True
 
-        if len(piece_list) != self.last_num_of_pieces:
-            self.last_num_of_pieces = len(piece_list)
-
         if insufficient_material:
             self.evaluation = 0.0
             self.ai_game_ended = True
         elif self.repetition_counter >= 4:
-            self.evaluation = 0.0
-            self.ai_game_ended = True
-        elif self.fifty_move_counter == 50:
             self.evaluation = 0.0
             self.ai_game_ended = True
 
@@ -913,9 +908,9 @@ class Board:
             else:
                 self.ai_game_ended = True
                 if eval_color == 'white':
-                    self.evaluation = - 99999.0 + self.move_counter
+                    self.evaluation = - 99999.0 - self.move_counter
                 elif eval_color == 'black':
-                    self.evaluation = 99999.0 - self.move_counter
+                    self.evaluation = 99999.0 + self.move_counter
         return valid_moves
 
     def no_check_valid_moves(self, color, eval_color=False):

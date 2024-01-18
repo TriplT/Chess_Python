@@ -29,7 +29,7 @@ class AI:
 
     def play_moves(self, board, engine='alea iacta est'):
         # print(board.evaluate_position(self.color))
-        self.squares_with_piece = board.save_own_square_pieces(self.color)
+        self.squares_with_piece = board.get_own_pieces(self.color)
         self.moves = Game.player_valid_moves
 
         if not self.squares_with_piece:
