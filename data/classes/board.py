@@ -39,7 +39,6 @@ class Board:
 
         self.last_moves = []
 
-        self.last_num_of_pieces = 0  # 50 move-rule, ineffizient? einfach in normale move funktion einbauen
         self.repetition_counter = 0
         self.game_ended = False
         self.win_message = False
