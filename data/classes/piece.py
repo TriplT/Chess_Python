@@ -32,7 +32,6 @@ class Piece:
 
         self.pinned = []
 
-        self.preload_images()
         self.img = img
         self.img = self.piece_images[f'{color}_{name}']
         self.img_rect = img_rect

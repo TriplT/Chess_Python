@@ -44,8 +44,7 @@ class Board:
         self.win_message = False
 
         self.create_squares()
-        self.add_startposition('white')
-        self.add_startposition('black')
+        self.add_startposition()
         self.get_amount_of_pieces()
 
     def create_squares(self):
@@ -98,7 +97,7 @@ class Board:
         if isinstance(piece, Pawn):
             last_move = self.get_last_move() if self.move_counter != 0 else False
             self.en_passant(piece, move, last_move)
-            self.player_pawn_promotion(screen, piece, move.final_square, game) if player else self.ai_pawn_promotion(piece, move)
+            self.player_promotion(screen, piece, move.final_square, game) if player else self.ai_promotion(piece, move)
             self.fifty_move_counter = -1
 
         if isinstance(piece, Rook):
@@ -154,7 +153,7 @@ class Board:
         if isinstance(piece, Pawn):
             last_move = self.get_last_move() if self.move_counter != 0 else False
             self.en_passant(piece, move, last_move)
-            self.ai_pawn_promotion(piece, move)
+            self.ai_promotion(piece, move)
 
         if isinstance(piece, Rook):
             rank = 0 if piece.color == 'black' else 7
@@ -182,6 +181,10 @@ class Board:
         if isinstance(piece, Pawn):
             if piece.made_en_passant == self.move_counter:
                 self.squares[move.initial_square.rank][move.final_square.file].piece = Pawn('white' if piece.color == 'black' else 'black')
+
+        # revert promotion
+        if isinstance(piece, (Queen, Bishop, Knight, Rook)):
+            self.revert_promotion(move.initial_square.rank, move.initial_square.file, piece)
 
         # revert castling
         if isinstance(piece, King):
@@ -213,11 +216,16 @@ class Board:
                     possible_king.right_castling = True
                     possible_king.lost_right_castling = False
 
-    def ai_pawn_promotion(self, piece, move):
+    def ai_promotion(self, piece, move):
         if isinstance(piece, Pawn) and (move.final_square.rank == 0 or move.final_square.rank == 7):
             self.squares[move.final_square.rank][move.final_square.file].piece = move.promotion_piece(piece.color)
+            self.squares[move.final_square.rank][move.final_square.file].piece.made_promotion = self.move_counter
 
-    def player_pawn_promotion(self, screen, piece, last, game):
+    def revert_promotion(self, rank, file, piece):
+        if piece.made_promotion == self.move_counter:
+            self.squares[rank][file].piece = Pawn(piece.color)
+
+    def player_promotion(self, screen, piece, last, game):
         if isinstance(piece, Pawn) and (last.rank == 0 or last.rank == 7):
             # create border
             color = (255, 255, 255)
@@ -377,56 +385,83 @@ class Board:
         else:
             self.evaluation = -round(position_value, 3)
 
-    def add_startpositio(self, color):
-        if color == 'white':
-            rank_pawn, rank_piece = (6, 7)
-            self.squares[5][0] = Square(5, 0, Pawn(color))
-        else:
-            rank_pawn, rank_piece = (1, 0)
-            self.squares[2][0] = Square(2, 0, Pawn(color))
+    def add_startpositio(self):
+        colors = ('white', 'black')
+        for color in colors:
+            if color == 'white':
+                rank_pawn, rank_piece = (6, 7)
+            else:
+                rank_pawn, rank_piece = (1, 0)
 
-        self.squares[rank_pawn][1] = Square(rank_pawn, 1, Pawn(color))
-        self.squares[rank_pawn][2] = Square(rank_pawn, 2, Pawn(color))
-        self.squares[rank_pawn][3] = Square(rank_pawn, 3, Pawn(color))
-        self.squares[rank_pawn][4] = Square(rank_pawn, 4, Pawn(color))
-        self.squares[rank_pawn][5] = Square(rank_pawn, 5, Pawn(color))
-        self.squares[rank_pawn][6] = Square(rank_pawn, 6, Pawn(color))
-        self.squares[rank_pawn][7] = Square(rank_pawn, 7, Pawn(color))
+            self.squares[rank_pawn][0] = Square(rank_pawn, 0, Pawn(color))
+            self.squares[rank_pawn][1] = Square(rank_pawn, 1, Pawn(color))
+            self.squares[rank_pawn][2] = Square(rank_pawn, 2, Pawn(color))
+            self.squares[rank_pawn][3] = Square(rank_pawn, 3, Pawn(color))
+            self.squares[rank_pawn][4] = Square(rank_pawn, 4, Pawn(color))
+            self.squares[rank_pawn][5] = Square(rank_pawn, 5, Pawn(color))
+            self.squares[rank_pawn][6] = Square(rank_pawn, 6, Pawn(color))
+            self.squares[rank_pawn][7] = Square(rank_pawn, 7, Pawn(color))
 
-        self.squares[rank_piece][1] = Square(rank_piece, 1, Knight(color))
-        self.squares[rank_piece][6] = Square(rank_piece, 6, Knight(color))
+            self.squares[rank_piece][1] = Square(rank_piece, 1, Knight(color))
+            self.squares[rank_piece][6] = Square(rank_piece, 6, Knight(color))
 
-        self.squares[rank_piece][2] = Square(rank_piece, 2, Bishop(color))
-        self.squares[rank_piece][5] = Square(rank_piece, 5, Bishop(color))
+            self.squares[rank_piece][2] = Square(rank_piece, 2, Bishop(color))
+            self.squares[rank_piece][5] = Square(rank_piece, 5, Bishop(color))
 
-        self.squares[rank_piece][0] = Square(rank_piece, 0, Rook(color))
-        self.squares[rank_piece][7] = Square(rank_piece, 7, Rook(color))
+            self.squares[rank_piece][0] = Square(rank_piece, 0, Rook(color))
+            self.squares[rank_piece][7] = Square(rank_piece, 7, Rook(color))
 
-        self.squares[rank_piece][4] = Square(rank_piece, 4, King(color))
+            self.squares[rank_piece][4] = Square(rank_piece, 4, King(color))
 
-        self.squares[rank_piece][3] = Square(rank_piece, 3, Queen(color))
+            self.squares[rank_piece][3] = Square(rank_piece, 3, Queen(color))
 
-    def add_startposition(self, color):
-        if color == 'white':
-            rank_pawn, rank_piece = (6, 7)
-        else:
-            rank_pawn, rank_piece = (1, 0)
+    def add_startposition(self):
+        colors = ('white', 'black')
+        for color in colors:
+            if color == 'white':
+                self.squares[7][0] = Square(7, 0, Pawn(color))
+                self.squares[7][1] = Square(7, 1, Pawn(color))
+                self.squares[7][2] = Square(7, 2, Pawn(color))
+                self.squares[7][3] = Square(7, 3, Pawn(color))
+                self.squares[6][4] = Square(6, 4, Pawn(color))
+                self.squares[1][5] = Square(1, 5, Pawn(color))
+                self.squares[7][6] = Square(7, 6, Pawn(color))
+                self.squares[7][7] = Square(7, 7, Pawn(color))
+                self.squares[5][4] = Square(5, 4, Pawn(color))
 
-        for file in range(files):
-            self.squares[rank_pawn][file] = Square(rank_pawn, file, Pawn(color))
+                self.squares[6][1] = Square(6, 1, Knight(color))
+                self.squares[1][6] = Square(1, 6, Knight(color))
 
-        self.squares[rank_piece][1] = Square(rank_piece, 1, Knight(color))
-        self.squares[rank_piece][6] = Square(rank_piece, 6, Knight(color))
+                self.squares[3][2] = Square(3, 2, Bishop(color))
+                self.squares[7][5] = Square(7, 5, Bishop(color))
 
-        self.squares[rank_piece][2] = Square(rank_piece, 2, Bishop(color))
-        self.squares[rank_piece][5] = Square(rank_piece, 5, Bishop(color))
+                self.squares[2][0] = Square(2, 0, Rook(color))
+                self.squares[4][7] = Square(4, 7, Rook(color))
 
-        self.squares[rank_piece][0] = Square(rank_piece, 0, Rook(color))
-        self.squares[rank_piece][7] = Square(rank_piece, 7, Rook(color))
+                self.squares[7][4] = Square(7, 4, King(color))
 
-        self.squares[rank_piece][4] = Square(rank_piece, 4, King(color))
+                self.squares[2][3] = Square(2, 3, Queen(color))
+            else:
+                self.squares[0][2] = Square(0, 2, Pawn(color))
+                self.squares[0][3] = Square(0, 3, Pawn(color))
+                self.squares[0][4] = Square(0, 4, Pawn(color))
+                self.squares[0][6] = Square(0, 6, Pawn(color))
+                self.squares[0][7] = Square(0, 7, Pawn(color))
+                self.squares[1][4] = Square(1, 4, Pawn(color))
+                self.squares[1][7] = Square(1, 7, Pawn(color))
 
-        self.squares[rank_piece][3] = Square(rank_piece, 3, Queen(color))
+                self.squares[1][0] = Square(1, 0, Knight(color))
+                self.squares[3][6] = Square(3, 6, Knight(color))
+
+                self.squares[6][2] = Square(6, 2, Bishop(color))
+                self.squares[0][1] = Square(0, 1, Bishop(color))
+
+                self.squares[5][0] = Square(5, 0, Rook(color))
+                self.squares[6][7] = Square(6, 7, Rook(color))
+
+                self.squares[0][0] = Square(0, 0, King(color))
+
+                self.squares[4][4] = Square(4, 4, Queen(color))
 
     # improvable, color is being used, its buggy
     def game_end_minimax(self, color):
