@@ -83,6 +83,18 @@ class Board:
             if self.squares[move.final_square.rank][move.final_square.file].occupied():
                 self.fifty_move_counter = - 1  # is turned to 0 at the bottom
 
+        # remove castling for captured rooks
+        if isinstance(self.squares[move.final_square.rank][move.final_square.file].piece, Rook):
+            rank = 7 if piece.color == 'black' else 0
+            possible_king = self.squares[rank][4].piece
+            if isinstance(possible_king, King):
+                if not possible_king.lost_left_castling and move.final_square.file == 0:
+                    possible_king.lost_left_castling = self.move_counter
+                    possible_king.left_castling = False
+                elif not possible_king.lost_right_castling and move.final_square.file == 7:
+                    possible_king.lost_right_castling = self.move_counter
+                    possible_king.right_castling = False
+
         # move piece on board
         self.squares[move.initial_square.rank][move.initial_square.file].piece = None
         self.squares[move.final_square.rank][move.final_square.file].piece = piece
@@ -142,10 +154,10 @@ class Board:
             rank = 0 if piece.color == 'black' else 7
             possible_king = self.squares[rank][4].piece
             if isinstance(possible_king, King):
-                if not possible_king.left_castling and not possible_king.lost_left_castling and move.initial_square.file == 0:
+                if not possible_king.lost_left_castling and move.initial_square.file == 0:
                     possible_king.lost_left_castling = self.move_counter
                     possible_king.left_castling = False
-                elif not possible_king.right_castling and not possible_king.lost_right_castling and move.initial_square.file == 7:
+                elif not possible_king.lost_right_castling and move.initial_square.file == 7:
                     possible_king.lost_right_castling = self.move_counter
                     possible_king.right_castling = False
 
@@ -161,12 +173,20 @@ class Board:
         # but it does work???
         self.move_counter += 1
 
-        for position, piece in self.piece_positions.items():
-            print(f"{position}: {piece.color} {piece.name}")
-        print(f"Number of items in the dictionary: {len(self.piece_positions)}")
-
     def minimax_move(self, piece, move):
         self.save_last_eaten_piece(self.squares[move.final_square.rank][move.final_square.file].piece)
+
+        # remove castling for captured rooks
+        if isinstance(self.squares[move.final_square.rank][move.final_square.file].piece, Rook):
+            rank = 7 if piece.color == 'black' else 0
+            possible_king = self.squares[rank][4].piece
+            if isinstance(possible_king, King):
+                if not possible_king.lost_left_castling and move.final_square.file == 0:
+                    possible_king.lost_left_castling = self.move_counter
+                    possible_king.left_castling = False
+                elif not possible_king.lost_right_castling and move.final_square.file == 7:
+                    possible_king.lost_right_castling = self.move_counter
+                    possible_king.right_castling = False
 
         # move piece on board
         self.squares[move.initial_square.rank][move.initial_square.file].piece = None
@@ -222,18 +242,15 @@ class Board:
             rank = 0 if piece.color == 'black' else 7
             possible_king = self.squares[rank][4].piece
             if isinstance(possible_king, King):
-                if not possible_king.left_castling and not possible_king.lost_left_castling and move.initial_square.file == 0:
+                if not possible_king.lost_left_castling and move.initial_square.file == 0:
                     possible_king.lost_left_castling = self.move_counter
                     possible_king.left_castling = False
-                elif not possible_king.right_castling and not possible_king.lost_right_castling and move.initial_square.file == 7:
+                elif not possible_king.lost_right_castling and move.initial_square.file == 7:
                     possible_king.lost_right_castling = self.move_counter
                     possible_king.right_castling = False
 
         self.move_counter += 1
         self.save_last_move(move)
-        for position, piece in self.piece_positions.items():
-            print(f"{position}: {piece.color} {piece.name}")
-        print(f"Number of items in the dictionary: {len(self.piece_positions)}")
 
     def unmake_move(self, piece, move):
         last_eaten_piece = self.get_last_eaten_piece()
@@ -249,17 +266,19 @@ class Board:
         final_position = (move.final_square.rank, move.final_square.file)
 
         if last_eaten_piece:
+            print(f'restoring {self.squares[move.final_square.rank][move.final_square.file].piece.color} {self.squares[move.final_square.rank][move.final_square.file].piece.name} from {initial_position}')
             self.piece_positions[final_position] = self.squares[move.final_square.rank][move.final_square.file].piece
         else:
+            print(f'removing piece from {final_position}')
             del self.piece_positions[final_position]
         self.piece_positions[initial_position] = piece
 
         # revert eaten piece in en passant
         if isinstance(piece, Pawn):
             if piece.made_en_passant == self.move_counter:
+                piece.made_en_passant = False  # theoretically makes no difference
                 opposite_color = 'white' if piece.color == 'black' else 'black'
-                rank_diff = 1 if piece.color == 'white' else -1
-                rank = move.initial_square.rank + rank_diff
+                rank = move.initial_square.rank
                 file = move.final_square.file
 
                 self.squares[rank][file].piece = Pawn(opposite_color)
@@ -368,6 +387,7 @@ class Board:
         if piece.en_passant:
             if move.final_square.file == last_move.final_square.file:
                 self.squares[last_move.final_square.rank][last_move.final_square.file].piece = None
+                print('en passant delete')
                 del self.piece_positions[(last_move.final_square.rank, last_move.final_square.file)]
                 piece.made_en_passant = self.move_counter
 
@@ -1198,6 +1218,7 @@ class Board:
                                     or self.enemy_attacking_squares[self.king_rank][square] == 1:
                             can_castle = False
                     if can_castle:
+                        print(f'king left castling: {king.left_castling}')
                         initial = Square(self.king_rank, self.king_file)
                         final = Square(self.king_rank, 2)
                         move = Move(initial, final)
