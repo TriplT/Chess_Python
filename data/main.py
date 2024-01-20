@@ -123,10 +123,7 @@ def main():
             print_last_move(screen, board)
             print_pieces(screen, board, dragger)
 
-        # make main loop be stopped while minimax is being calculated
         if board.move_played:
-            if board.squares[2][2].occupied():
-                print(f'{board.squares[2][2].piece.color} {board.squares[2][2].piece.name} on square 2, 2 (main)')
             board.game_end(game.player)
         if board.win_message:
             if game.game_mode == '100ava':
