@@ -1218,7 +1218,6 @@ class Board:
                                     or self.enemy_attacking_squares[self.king_rank][square] == 1:
                             can_castle = False
                     if can_castle:
-                        print(f'king left castling: {king.left_castling}')
                         initial = Square(self.king_rank, self.king_file)
                         final = Square(self.king_rank, 2)
                         move = Move(initial, final)
