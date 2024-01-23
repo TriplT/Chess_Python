@@ -31,13 +31,6 @@ class AI:
         self.max_pruning_count = 0
         self.min_pruning_count = 0
 
-        self.execution_time = 0
-        self.execution_time_2 = 0
-        self.execution_time_3 = 0
-        self.execution_time_4 = 0
-        self.execution_time_5 = 0
-        self.execution_time_6 = 0
-
     def play_moves(self, board, engine='alea iacta est'):
         # print(board.evaluate_position(self.color))
         self.squares_with_piece = board.get_own_pieces(self.color)
@@ -139,8 +132,6 @@ class AI:
                 board.move(piece, move, False)
 
         def play_interstellar_improved():
-            start_time = time.time()
-
             # profiler = cProfile.Profile()
             # profiler.enable()
 
@@ -153,9 +144,6 @@ class AI:
             # stats.print_stats()
             # with open('profile_results.txt', 'w') as f:
                 # f.write(profile_stats.getvalue())
-
-            end_time = time.time()
-            self.execution_time += (end_time - start_time)
 
             print(' ')
             print(f'minimax count: {self.minimax_count}')
@@ -181,13 +169,6 @@ class AI:
                 print(' ')
                 print('AI MOVE PLAYED')
                 print(' ')
-            # code execution time:
-            print(f'minimax time execution: {self.execution_time} seconds')
-            print(f'valid moves time execution: {self.execution_time_2} seconds')
-            print(f'game end time execution: {self.execution_time_3} seconds')
-            print(f'move time execution: {self.execution_time_4} seconds')
-            print(f'unmake_move time execution: {self.execution_time_5} seconds')
-            print(f'evaluation time execution: {self.execution_time_6} seconds')
             return True
 
         def move_amount():
@@ -278,21 +259,8 @@ class AI:
         print(' ')
         print(f'depth: {depth}')
 
-        # bug fix
-        '''
-        if board.squares[2][2].occupied():
-            if isinstance(board.squares[2][2].piece, Knight) or board.played moves < 3 or isinstance(board.squares[2][2].piece, Pawn):
-                print(f'{board.squares[2][2].piece.color} {board.squares[2][2].piece.name} on square 2, 2')
-            else:
-                exit(1)
-        '''
         if depth == 0:
-
-            start_time = time.time()
             board.evaluate_position(self.color)
-            end_time = time.time()
-            self.execution_time_6 += (end_time - start_time)
-
             print(f'evaluate position: {board.evaluation}')
             return board.evaluation, best_move
 
@@ -304,28 +272,23 @@ class AI:
             else:
                 player_color = 'white'
 
-        start_time = time.time()
-        board.game_end_minimax(player_color)
-        end_time = time.time()
-        self.execution_time_3 += (end_time - start_time)
+        board.game_end(False)
 
         if board.ai_game_ended:
+            self.game_end += 1
             board.ai_game_ended = False
             return board.evaluation, best_move
 
-        start_time = time.time()
         valid_moves = board.get_valid_moves(player_color, self.color)
-        end_time = time.time()
-        self.execution_time_2 += (end_time - start_time)
 
         if board.ai_game_ended:
             board.ai_game_ended = False
             return board.evaluation, best_move
 
-        self.minimax_count += 1
-
+        '''
         print(f'minimax: {self.minimax_count}')
         print(f'color: {player_color}')
+        '''
 
         if max_player:
             max_eval = -math.inf
@@ -334,29 +297,25 @@ class AI:
             for move in valid_moves:
                 piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
 
+                '''
                 print('move')
-                # print(piece.color, piece.name)
+                print(piece.color, piece.name)
                 print((move.initial_square.rank, move.initial_square.file),
                 (move.final_square.rank, move.final_square.file))
-                # this line is here for bug fixing. remove this and uncomment to one before
-                print(piece.color, piece.name)
+                '''
 
-                start_time = time.time()
                 board.minimax_move(piece, move)
-                end_time = time.time()
-                self.execution_time_4 += (end_time - start_time)
 
                 evaluation = self.minimax_ascended(board, depth - 1, alpha, beta, False)
 
+                '''
                 print('unmake move')
                 print(piece.color, piece.name)
                 print((move.initial_square.rank, move.initial_square.file),
                 (move.final_square.rank, move.final_square.file))
+                '''
 
-                start_time = time.time()
                 board.unmake_move(piece, move)
-                end_time = time.time()
-                self.execution_time_5 += (end_time - start_time)
 
                 max_eval = max(max_eval, evaluation[0])
                 if max_eval > max_move:
@@ -377,27 +336,25 @@ class AI:
             for move in valid_moves:
                 piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
 
+                '''
                 print('move')
                 print(piece.color, piece.name)
                 print((move.initial_square.rank, move.initial_square.file),
                 (move.final_square.rank, move.final_square.file))
+                '''
 
-                start_time = time.time()
                 board.minimax_move(piece, move)
-                end_time = time.time()
-                self.execution_time_4 += (end_time - start_time)
 
                 evaluation = self.minimax_ascended(board, depth - 1, alpha, beta, True)
 
+                '''
                 print('unmake move')
                 print(piece.color, piece.name)
                 print((move.initial_square.rank, move.initial_square.file),
                 (move.final_square.rank, move.final_square.file))
+                '''
 
-                start_time = time.time()
                 board.unmake_move(piece, move)
-                end_time = time.time()
-                self.execution_time_5 += (end_time - start_time)
 
                 min_eval = min(min_eval, evaluation[0])
                 if min_eval < min_move:
@@ -456,7 +413,7 @@ class AI:
                 print(board.squares[move.initial_square.rank][move.initial_square.file].piece.color, board.squares[move.initial_square.rank][move.initial_square.file].piece.name)
                 print(f'{move.initial_square.rank, move.initial_square.file} to {move.final_square.rank, move.final_square.file}')
         '''
-        board.game_end_minimax(player_color)
+        board.game_end(False)
 
         if max_player:
             max_eval = -math.inf
@@ -541,7 +498,7 @@ class AI:
         self.minimax_count += 1
 
         # board.game_end still fucking slow
-        if board.game_end_minimax(player_color, max_player):
+        if board.game_end(False):
             return board.evaluation, best_move
         elif depth == 0:
             board.evaluate_position(player_color)
@@ -606,7 +563,7 @@ class AI:
         print(f'minimax initiated; player: {player_color}')
         self.minimax_count += 1
 
-        if board.game_end_minimax(player_color, max_player):
+        if board.game_end(False):
             print(f'GAME ENDED; eval: {board.evaluation}, player: {player_color}, max_player: {max_player}')
             return board.evaluation, best_move
         elif depth == 0:
@@ -694,7 +651,7 @@ class AI:
         print(f'minimax initiated; player: {player_color}')
         self.minimax_count += 1
 
-        if board.game_end_minimax(player_color, max_player):
+        if board.game_end(False):
             print(f'GAME ENDED; eval: {board.evaluation}, player: {player_color}, max_player: {max_player}')
             return board.evaluation, best_move
         elif depth == 0:
@@ -769,69 +726,7 @@ class AI:
                   f' to ({best_min_move.final_square.rank, best_min_move.final_square.file})')
             return min_eval, best_min_move
 
-    def minimax_2(self, board, depth, alpha, beta, max_player, best_move='000000000 error 00000000'):
 
-        if max_player:
-            player_color = self.color
-        else:
-            if self.color == 'white':
-                player_color = 'black'
-            else:
-                player_color = 'white'
-
-        self.minimax_count += 1
-
-        if board.game_end_minimax(player_color, max_player):
-            return board.evaluation, best_move
-        elif depth == 0:
-            board.evaluate_position(player_color)
-            return board.evaluation, best_move
-
-        if max_player:
-            max_eval = -math.inf
-            max_move = -math.inf
-
-            for move in board.calculate_all_valid_moves(player_color):
-                piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
-
-                board.minimax_move(piece, move, True)
-                evaluation = self.minimax_2(board, depth - 1, alpha, beta, False)
-                board.unmake_move(piece, move)
-
-                max_eval = max(max_eval, evaluation[0])
-                if max_eval > max_move:
-                    max_move = max_eval
-                    best_max_move = move
-
-                alpha = max(alpha, evaluation[0])
-                if beta <= alpha:
-                    self.alpha_beta_pruning_count += 1
-                    self.max_pruning_count += 1
-                    break
-            return max_eval, best_max_move
-
-        else:
-            min_eval = math.inf
-            min_move = math.inf
-
-            for move in board.calculate_all_valid_moves(player_color):
-                piece = board.squares[move.initial_square.rank][move.initial_square.file].piece
-
-                board.minimax_move(piece, move, True)
-                evaluation = self.minimax_2(board, depth - 1, alpha, beta, True)
-                board.unmake_move(piece, move)
-
-                min_eval = min(min_eval, evaluation[0])
-                if min_eval < min_move:
-                    min_move = min_eval
-                    best_min_move = move
-
-                beta = min(beta, evaluation[0])
-                if beta <= alpha:
-                    self.alpha_beta_pruning_count += 1
-                    self.min_pruning_count += 1
-                    break
-            return min_eval, best_min_move
 
 
 

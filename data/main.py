@@ -124,7 +124,7 @@ def main():
             print_pieces(screen, board, dragger)
 
         if board.move_played:
-            board.game_end(game.player)
+            board.game_end(True)
         if board.win_message:
             if game.game_mode == '100ava':
                 game.game_end_100ava(board)

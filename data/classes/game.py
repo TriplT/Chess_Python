@@ -3,7 +3,7 @@ from Pycharm_Projects.Chess_Test.data.classes.board import *
 
 
 class Game:
-    player_valid_moves = None
+    player_valid_moves = False
 
     def __init__(self, board, game_mode='pvp', player='white'):
         self.board = board
