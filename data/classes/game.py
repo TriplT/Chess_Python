@@ -18,11 +18,17 @@ class Game:
         print(self.player)
         self.calc_player_valid_moves()
 
-    def turn_made(self):
+    def turn_made(self, board):
         if self.player == 'white':
             self.player = 'black'
         else:
             self.player = 'white'
+        if not board.endgame:
+            if len(board.piece_positions) <= 15:
+                board.endgame = True
+        if not board.finishgame:
+            if len(board.piece_positions) <= 7:
+                board.finishgame = True
 
     def calc_player_valid_moves(self):
         self.player_valid_moves = self.board.get_valid_moves(self.player)
@@ -30,7 +36,7 @@ class Game:
     def ai_turn(self, board, ai):
         if self.player == ai.color and not board.game_ended and not board.move_played:
             ai.play_moves(board, ai.engine)
-            self.turn_made()
+            self.turn_made(board)
             if self.game_mode == 'pva':
                 self.calc_player_valid_moves()
 
@@ -154,12 +160,3 @@ class Game:
         screen.blit(middle_top_text, middle_top_text_rect)
         screen.blit(middle_bottom_text, middle_bottom_text_rect)
         screen.blit(bottom_text, bottom_text_rect)
-
-
-
-
-
-
-
-
-

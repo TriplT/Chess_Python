@@ -134,9 +134,10 @@ class AI:
         def play_interstellar_improved():
             # profiler = cProfile.Profile()
             # profiler.enable()
-
-            evaluation, final_move = self.minimax_ascended(board, 4, -math.inf, math.inf, True)
-
+            if board.finishgame:
+                evaluation, final_move = self.minimax_ascended(board, 6, -math.inf, math.inf, True)
+            else:
+                evaluation, final_move = self.minimax_ascended(board, 4, -math.inf, math.inf, True)
             # profiler.disable()
             # profile_stats = StringIO()
             # stats = pstats.Stats(profiler, stream=profile_stats)
@@ -256,12 +257,12 @@ class AI:
 
     def minimax_ascended(self, board, depth, alpha, beta, max_player, best_move='000000000 error 00000000'):
 
-        print(' ')
-        print(f'depth: {depth}')
+        # print(' ')
+        # print(f'depth: {depth}')
 
         if depth == 0:
             board.evaluate_position(self.color)
-            print(f'evaluate position: {board.evaluation}')
+            # print(f'evaluate position {self.color}: {board.evaluation}')
             return board.evaluation, best_move
 
         if max_player:
@@ -275,7 +276,6 @@ class AI:
         board.game_end(False)
 
         if board.ai_game_ended:
-            self.game_end += 1
             board.ai_game_ended = False
             return board.evaluation, best_move
 
@@ -285,6 +285,7 @@ class AI:
             board.ai_game_ended = False
             return board.evaluation, best_move
 
+        self.minimax_count += 1
         '''
         print(f'minimax: {self.minimax_count}')
         print(f'color: {player_color}')

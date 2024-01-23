@@ -40,6 +40,7 @@ class Board:
         self.fifty_move_counter = 0  # 50 move rule variable
         self.played_moves = 0  # needed for bug fixing
         self.endgame = False
+        self.finishgame = False
 
         self.last_moves = []
         self.piece_positions = {}
@@ -92,6 +93,7 @@ class Board:
         self.game_ended = False
         self.ai_game_ended = False
         self.endgame = False
+        self.finishgame = False
         self.add_startposition()
         self.init_piece_positions()
 
@@ -587,10 +589,6 @@ class Board:
                 self.ai_game_ended = True
 
     def get_valid_moves(self, color, eval_color=False):
-        if not self.endgame:
-            if len(self.piece_positions) >= 15:
-                self.endgame = True
-
         self.calculate_enemy_attacking_moves('white' if color == 'black' else 'black')
         if self.enemy_checking_squares:
             # because the king is in check there will only be moves calculated that put the king out of check
@@ -1291,7 +1289,7 @@ class Board:
                     [13, 8, 8, 10, 13, 0, 2, -7],
                     [0, 0, 0, 0, 0, 0, 0, 0]
                 ]
-                return table[rank][file]
+            return table[rank][file]
 
         def bishop():
             if not self.endgame:
@@ -1316,7 +1314,7 @@ class Board:
                     [-14, -18, -7, -1, 4, -9, -15, -27],
                     [-23, -9, -23, -5, -9, -16, -5, -17]
                 ]
-                return table[rank][file]
+            return table[rank][file]
 
         def knight():
             if not self.endgame:
@@ -1341,7 +1339,7 @@ class Board:
                     [-42, -20, -10, -5, -2, -20, -23, -44],
                     [-29, -51, -23, -15, -22, -18, -50, -64]
                 ]
-                return table[rank][file]
+            return table[rank][file]
 
         def rook():
             if not self.endgame:
@@ -1366,7 +1364,7 @@ class Board:
                     [-6, -6, 0, 2, -9, -9, -11, -3],
                     [-9, 2, 3, -1, -5, -13, 4, -20]
                 ]
-                return table[rank][file]
+            return table[rank][file]
 
         def queen():
             if not self.endgame:
@@ -1391,7 +1389,7 @@ class Board:
                     [-22, -23, -30, -16, -16, -23, -36, -32],
                     [-33, -28, -22, -43, -5, -32, -20, -41]
                 ]
-                return table[rank][file]
+            return table[rank][file]
 
         def king():
             if not self.endgame:
@@ -1416,7 +1414,7 @@ class Board:
                     [-27, -11, 4, 13, 14, 4, -5, -17],
                     [-53, -34, -21, -11, -28, -14, -24, -43]
                 ]
-                return table[rank][file]
+            return table[rank][file]
 
         if color == 'black':
             rank = 7 - rank
