@@ -166,7 +166,7 @@ class AI:
             self.min_pruning_count = 0
 
             if final_move:
-                board.move(piece, final_move, False)
+                board.move(piece, final_move, True)
                 print(' ')
                 print('AI MOVE PLAYED')
                 print(' ')
@@ -262,7 +262,6 @@ class AI:
 
         if depth == 0:
             board.evaluate_position(self.color)
-            # print(f'evaluate position {self.color}: {board.evaluation}')
             return board.evaluation, best_move
 
         if max_player:
@@ -279,13 +278,14 @@ class AI:
             board.ai_game_ended = False
             return board.evaluation, best_move
 
-        valid_moves = board.get_valid_moves(player_color, self.color)
+        valid_moves = board.get_valid_moves(player_color, True, max_player)
 
         if board.ai_game_ended:
             board.ai_game_ended = False
             return board.evaluation, best_move
 
         self.minimax_count += 1
+
         '''
         print(f'minimax: {self.minimax_count}')
         print(f'color: {player_color}')
@@ -305,7 +305,7 @@ class AI:
                 (move.final_square.rank, move.final_square.file))
                 '''
 
-                board.minimax_move(piece, move)
+                board.move(piece, move, False)
 
                 evaluation = self.minimax_ascended(board, depth - 1, alpha, beta, False)
 
@@ -344,7 +344,7 @@ class AI:
                 (move.final_square.rank, move.final_square.file))
                 '''
 
-                board.minimax_move(piece, move)
+                board.move(piece, move, False)
 
                 evaluation = self.minimax_ascended(board, depth - 1, alpha, beta, True)
 

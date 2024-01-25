@@ -97,13 +97,13 @@ class Board:
         self.add_startposition()
         self.init_piece_positions()
 
-    def move(self, piece, move, player, game=None):
+    def move(self, piece, move, player, game=False):
         if player:
-            self.save_last_eaten_piece(self.squares[move.final_square.rank][move.final_square.file].piece)
-        else:
             # 50 move rule
             if self.squares[move.final_square.rank][move.final_square.file].occupied():
                 self.fifty_move_counter = - 1  # is turned to 0 at the bottom
+        else:
+            self.save_last_eaten_piece(self.squares[move.final_square.rank][move.final_square.file].piece)
 
         # remove castling for captured rooks
         if isinstance(self.squares[move.final_square.rank][move.final_square.file].piece, Rook):
@@ -127,17 +127,18 @@ class Board:
 
         if initial_position in self.piece_positions:
             del self.piece_positions[initial_position]
-        self.piece_positions[final_position] = piece
+        self.piece_positions[final_position] = self.squares[move.final_square.rank][move.final_square.file].piece
 
         # en passant  & promotion logic
         if isinstance(piece, Pawn):
             last_move = self.get_last_move() if self.move_counter != 0 else False
             self.en_passant(piece, move, last_move)
-            if player:
+            if game:
                 self.player_promotion(screen, piece, move.final_square, game)
-                self.fifty_move_counter = -1
             else:
                 self.ai_promotion(piece, move)
+            if player:
+                self.fifty_move_counter = -1
 
         # castling logic
         if isinstance(piece, King):
@@ -159,7 +160,7 @@ class Board:
                     self.squares[rank][3].piece = rook
 
                     del self.piece_positions[(rank, file)]
-                    self.piece_positions[(rank, 3)] = piece
+                    self.piece_positions[(rank, 3)] = self.squares[rank][3].piece
 
                 if move.final_square.file == 6:
                     rank = 0 if piece.color == 'black' else 7
@@ -170,7 +171,7 @@ class Board:
                     self.squares[rank][5].piece = rook
 
                     del self.piece_positions[(rank, file)]
-                    self.piece_positions[(rank, 5)] = piece
+                    self.piece_positions[(rank, 5)] = self.squares[rank][5].piece
 
         if isinstance(piece, Rook):
             rank = 0 if piece.color == 'black' else 7
@@ -253,7 +254,7 @@ class Board:
                     self.squares[rank][3].piece = rook
 
                     del self.piece_positions[(rank, file)]
-                    self.piece_positions[(rank, 3)] = piece
+                    self.piece_positions[(rank, 3)] = self.squares[rank][3].piece
 
                 if move.final_square.file == 6:
                     rank = 0 if piece.color == 'black' else 7
@@ -264,7 +265,7 @@ class Board:
                     self.squares[rank][5].piece = rook
 
                     del self.piece_positions[(rank, file)]
-                    self.piece_positions[(rank, 5)] = piece
+                    self.piece_positions[(rank, 5)] = self.squares[rank][5].piece
 
         if isinstance(piece, Rook):
             rank = 0 if piece.color == 'black' else 7
@@ -476,8 +477,7 @@ class Board:
                 position_value -= piece_sq_eval
                 position_value -= piece.value
 
-        self.evaluation = round(position_value, 3)
-
+        self.evaluation = round(position_value, 1)
     def add_startposition(self):
         colors = ('white', 'black')
         for color in colors:
@@ -519,7 +519,6 @@ class Board:
                 self.squares[3][4] = Square(3, 4, Pawn(color))
 
                 self.squares[6][1] = Square(6, 1, Knight(color))
-                # self.squares[1][6] = Square(1, 6, Knight(color))
 
                 self.squares[3][2] = Square(3, 2, Bishop(color))
                 self.squares[7][5] = Square(7, 5, Bishop(color))
@@ -588,14 +587,14 @@ class Board:
                 self.evaluation = 0.0
                 self.ai_game_ended = True
 
-    def get_valid_moves(self, color, eval_color=False):
+    def get_valid_moves(self, color, ai=False, max_player=False):
         self.calculate_enemy_attacking_moves('white' if color == 'black' else 'black')
         if self.enemy_checking_squares:
             # because the king is in check there will only be moves calculated that put the king out of check
-            return self.in_check_valid_moves(color, eval_color)
+            return self.in_check_valid_moves(color, ai, max_player)
         else:
             # because the king is NOT in check moves can be calculated easily
-            return self.no_check_valid_moves(color, eval_color)
+            return self.no_check_valid_moves(color, ai)
 
     def calculate_enemy_attacking_moves(self, color):
 
@@ -807,7 +806,7 @@ class Board:
                         (1, 0)])
 
     # parameter eval color used for game over (stale-/checkmate)
-    def in_check_valid_moves(self, color, eval_color=False):
+    def in_check_valid_moves(self, color, ai, max_player=False):
         def pawn_moves():
             promotion_pieces = [Queen, Knight, Bishop, Rook]
             piece.en_passant = False
@@ -975,15 +974,16 @@ class Board:
             # calculate checkmate
             king_moves()
             if not valid_moves:
-                if not eval_color:
+                if ai:
+                    self.ai_game_ended = True
+                    if max_player:
+                        self.evaluation = - 99999.0 + (self.move_counter * 100)
+                    else:
+                        self.evaluation = + 99999.0 - (self.move_counter * 100)
+                else:
                     self.win_message = 'checkmate'
                     self.game_ended = True
-                else:
-                    self.ai_game_ended = True
-                    if eval_color == 'white':
-                        self.evaluation = - 99999.0 + self.move_counter
-                    elif eval_color == 'black':
-                        self.evaluation = 99999.0 - self.move_counter
+
             return valid_moves
 
         for position in sorted(self.piece_positions, reverse=True):
@@ -1024,19 +1024,19 @@ class Board:
 
         # calculate checkmate
         if not valid_moves:
-            if not eval_color:
+            if ai:
+                self.ai_game_ended = True
+                if max_player:
+                    self.evaluation = - 99999.0 + (self.move_counter * 100)
+                else:
+                    self.evaluation = + 99999.0 - (self.move_counter * 100)
+            else:
                 self.win_message = 'checkmate'
                 self.game_ended = True
-            else:
-                self.ai_game_ended = True
-                if eval_color == 'white':
-                    self.evaluation = - 99999.0 - self.move_counter
-                elif eval_color == 'black':
-                    self.evaluation = 99999.0 + self.move_counter
 
         return valid_moves
 
-    def no_check_valid_moves(self, color, eval_color=False):
+    def no_check_valid_moves(self, color, ai=False):
         valid_moves = []
 
         def pawn_moves():
@@ -1254,12 +1254,12 @@ class Board:
         # calculate stalemate
 
         if not valid_moves:
-            if not eval_color:
-                self.win_message = 'stalemate'
-                self.game_ended = True
-            else:
+            if ai:
                 self.ai_game_ended = True
                 self.evaluation = 0
+            else:
+                self.win_message = 'stalemate'
+                self.game_ended = True
 
         return valid_moves
 
@@ -1277,6 +1277,7 @@ class Board:
                     [-35, -1, -20, -23, -15, 24, 38, -22],
                     [0, 0, 0, 0, 0, 0, 0, 0]
                 ]
+
             # endgame
             else:
                 table = [
@@ -1401,7 +1402,7 @@ class Board:
                     [-49, -1, -27, -39, -46, -44, -33, -51],
                     [-14, -14, -22, -46, -44, -30, -15, -27],
                     [1, 7, -8, -64, -43, -16, 9, 8],
-                    [-15, 36, 12, -54, 8, -28, 24, 14]
+                    [-15, 36, 12, -54, 8, -28, 40, 14]
                 ]
             else:
                 table = [
@@ -1418,7 +1419,6 @@ class Board:
 
         if color == 'black':
             rank = 7 - rank
-            file = 7 - file
         eval = 0
         if isinstance(piece, Pawn):
             eval = pawn()
